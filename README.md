@@ -1,4 +1,4 @@
-sangria-slowlog - [Sangria](http://sangria-graphql.org/) middleware to log slow queries.
+**sangria-slowlog** - [Sangria](http://sangria-graphql.org/) middleware to log slow queries.
 
 SBT Configuration (WIP, not published anywhere yet):
 
