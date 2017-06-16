@@ -33,8 +33,7 @@ case class QueryMetrics(data: TrieMap[Vector[String], TrieMap[String, FieldMetri
     variables: In,
     durationNanos: Long,
     validationNanos: Long,
-    queryReducerNanos: Long,
-    unit: TimeUnit = TimeUnit.MILLISECONDS
+    queryReducerNanos: Long
   )(implicit renderer: MetricRenderer): ast.Document = {
     var inOperation = false
     AstVisitor.visitAstWithTypeInfo(schema, query) { typeInfo ⇒
@@ -54,7 +53,7 @@ case class QueryMetrics(data: TrieMap[Vector[String], TrieMap[String, FieldMetri
               } else Vector.empty
 
             val execution =
-              toComments(renderer.renderExecution(durationNanos, validationNanos, queryReducerNanos, unit))
+              toComments(renderer.renderExecution(durationNanos, validationNanos, queryReducerNanos))
 
             VisitorCommand.Transform(op.copy(comments = addComments(op.comments, execution ++ varComments)))
 
@@ -81,7 +80,7 @@ case class QueryMetrics(data: TrieMap[Vector[String], TrieMap[String, FieldMetri
                   for {
                     parentType ← typeInfo.previousParentType
                     fieldMetrics ← typeMetrics.get(parentType.name)
-                  } yield renderer.renderField(parentType.name, fieldMetrics, unit)
+                  } yield renderer.renderField(parentType.name, fieldMetrics)
 
                 val debugComments =
                   rendered match {
@@ -90,10 +89,10 @@ case class QueryMetrics(data: TrieMap[Vector[String], TrieMap[String, FieldMetri
                     case None if typeMetrics.isEmpty || typeInfo.previousParentType.isDefined && typeInfo.previousParentType.get.isInstanceOf[ObjectType[_, _]] ⇒
                       Vector.empty[ast.Comment]
                     case None if typeMetrics.size == 1 ⇒
-                      toComments(renderer.renderField(typeMetrics.head._1, typeMetrics.head._2, unit))
+                      toComments(renderer.renderField(typeMetrics.head._1, typeMetrics.head._2))
                     case None ⇒
                       typeMetrics.flatMap { case (typeName, metrics) ⇒
-                        toComments(renderer.renderField(typeName, metrics, unit))
+                        toComments(renderer.renderField(typeName, metrics))
                       }.drop(1).toVector
                   }
 

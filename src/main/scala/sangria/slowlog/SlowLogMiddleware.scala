@@ -8,7 +8,7 @@ import sangria.schema.Context
 
 import scala.collection.concurrent.TrieMap
 
-class SlowLogMiddleware(unit: TimeUnit = TimeUnit.MILLISECONDS)(implicit renderer: MetricRenderer) extends Middleware[Any] with MiddlewareAfterField[Any] with MiddlewareErrorField[Any] {
+class SlowLogMiddleware(implicit renderer: MetricRenderer) extends Middleware[Any] with MiddlewareAfterField[Any] with MiddlewareErrorField[Any] {
   type QueryVal = QueryMetrics
   type FieldVal = Long
 
@@ -34,8 +34,7 @@ class SlowLogMiddleware(unit: TimeUnit = TimeUnit.MILLISECONDS)(implicit rendere
         vars,
         System.nanoTime() - queryVal.startNanos,
         context.validationTiming.durationNanos,
-        context.queryReducerTiming.durationNanos,
-        unit)
+        context.queryReducerTiming.durationNanos)
       println(updatedQuery.renderPretty)
     }
   }
