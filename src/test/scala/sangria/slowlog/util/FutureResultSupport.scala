@@ -1,4 +1,4 @@
-package org.sangria.slowlog.util
+package sangria.slowlog.util
 
 import sangria.execution.{ErrorWithResolver, QueryAnalysisError}
 import sangria.marshalling.ResultMarshallerForType

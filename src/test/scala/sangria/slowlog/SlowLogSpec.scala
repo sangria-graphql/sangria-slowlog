@@ -1,9 +1,9 @@
-package org.sangria.slowlog
+package sangria.slowlog
 
 import java.util.concurrent.TimeUnit
 
 import com.codahale.metrics.{Counter, Histogram, MetricRegistry}
-import org.sangria.slowlog.util.FutureResultSupport
+import sangria.slowlog.util.FutureResultSupport
 import org.scalatest.{Matchers, WordSpec}
 import sangria.execution._
 import sangria.schema._

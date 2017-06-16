@@ -1,4 +1,4 @@
-package org.sangria.slowlog
+package sangria.slowlog
 
 import com.codahale.metrics.{Counter, Histogram}
 

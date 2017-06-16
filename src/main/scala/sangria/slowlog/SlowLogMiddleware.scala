@@ -1,4 +1,4 @@
-package org.sangria.slowlog
+package sangria.slowlog
 
 import java.util.concurrent.TimeUnit
 

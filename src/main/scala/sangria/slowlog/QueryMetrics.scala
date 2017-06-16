@@ -1,8 +1,8 @@
-package org.sangria.slowlog
+package sangria.slowlog
 
 import java.util.concurrent.TimeUnit
 
-import com.codahale.metrics.{Counter, ExponentiallyDecayingReservoir, Histogram, MetricRegistry}
+import com.codahale.metrics.{Counter, ExponentiallyDecayingReservoir, Histogram}
 import sangria.ast
 import sangria.ast.AstVisitor
 import sangria.marshalling.InputUnmarshaller
