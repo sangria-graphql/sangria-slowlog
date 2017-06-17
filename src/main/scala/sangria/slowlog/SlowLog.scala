@@ -72,20 +72,21 @@ class SlowLog(logFn: Option[(Document, Option[String], Long) ⇒ Unit], threshol
 }
 
 object SlowLog {
-  private def renderQueryForLog(query: Document, operationName: Option[String]): String =
-    query.separateOperation(operationName).fold("")(_.renderPretty)
+  private def renderQueryForLog(query: Document, operationName: Option[String], separateOp: Boolean): String =
+    if (separateOp) query.separateOperation(operationName).fold("")(_.renderPretty)
+    else query.renderPretty
 
-  private def renderLog(query: Document, operationName: Option[String], durationNanos: Long)(implicit renderer: MetricRenderer): String =
-    renderer.renderLogMessage(durationNanos, renderQueryForLog(query, operationName))
+  private def renderLog(query: Document, operationName: Option[String], durationNanos: Long, separateOp: Boolean)(implicit renderer: MetricRenderer): String =
+    renderer.renderLogMessage(durationNanos, renderQueryForLog(query, operationName, separateOp))
 
-  def apply(logger: Logger, threshold: FiniteDuration, addExtentions: Boolean = false)(implicit renderer: MetricRenderer): SlowLog =
-    new SlowLog(Some((query, op, duration) ⇒ logger.warn(renderLog(query, op, duration))), threshold, addExtentions)
+  def apply(logger: Logger, threshold: FiniteDuration, addExtentions: Boolean = false, separateOp: Boolean = true)(implicit renderer: MetricRenderer): SlowLog =
+    new SlowLog(Some((query, op, duration) ⇒ logger.warn(renderLog(query, op, duration, separateOp))), threshold, addExtentions)
 
-  def log(logFn: (Long, String) ⇒ Unit, threshold: FiniteDuration, addExtentions: Boolean = false)(implicit renderer: MetricRenderer): SlowLog =
-    new SlowLog(Some((query, op, duration) ⇒ logFn(duration, renderQueryForLog(query, op))), threshold, addExtentions)
+  def log(logFn: (Long, String) ⇒ Unit, threshold: FiniteDuration, addExtentions: Boolean = false, separateOp: Boolean = true)(implicit renderer: MetricRenderer): SlowLog =
+    new SlowLog(Some((query, op, duration) ⇒ logFn(duration, renderQueryForLog(query, op, separateOp))), threshold, addExtentions)
 
-  def print(threshold: FiniteDuration = 0 seconds, addExtentions: Boolean = false)(implicit renderer: MetricRenderer): SlowLog =
-    new SlowLog(Some((query, op, duration) ⇒ println(renderLog(query, op, duration))), threshold, addExtentions)
+  def print(threshold: FiniteDuration = 0 seconds, addExtentions: Boolean = false, separateOp: Boolean = true)(implicit renderer: MetricRenderer): SlowLog =
+    new SlowLog(Some((query, op, duration) ⇒ println(renderLog(query, op, duration,separateOp))), threshold, addExtentions)
 
   def extension(implicit renderer: MetricRenderer): SlowLog =
     new SlowLog(None, 0 seconds, true)

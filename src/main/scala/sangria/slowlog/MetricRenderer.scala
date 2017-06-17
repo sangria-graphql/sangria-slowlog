@@ -8,7 +8,7 @@ import sangria.ast
 import sangria.ast.Value
 
 trait MetricRenderer {
-  def renderField(typeName: String, metrics: FieldMetrics): String
+  def renderField(typeName: String, metrics: FieldMetrics, prefix: String): String
   def renderVariables[In : InputUnmarshaller](variables: In, names: Vector[String]): String
   def renderExecution(durationNanos: Long, validationNanos: Long, queryReducerNanos: Long): String
   def renderDuration(durationNanos: Long): String
@@ -26,7 +26,7 @@ object MetricRenderer {
 class DefaultMetricRenderer(val unit: TimeUnit) extends MetricRenderer {
   def renderVariables[In : InputUnmarshaller](variables: In, names: Vector[String]) = {
     val iu = implicitly[InputUnmarshaller[In]]
-    val renderedVars = names.flatMap(name ⇒ iu.getRootMapValue(variables, name).map(v ⇒ s"  $$${name} = ${iu.render(v)}"))
+    val renderedVars = names.flatMap(name ⇒ iu.getRootMapValue(variables, name).map(v ⇒ s"  $$$name = ${iu.render(v)}"))
 
     if (renderedVars.nonEmpty)
       renderedVars mkString "\n"
@@ -34,13 +34,13 @@ class DefaultMetricRenderer(val unit: TimeUnit) extends MetricRenderer {
       ""
   }
 
-  def renderField(typeName: String, metrics: FieldMetrics) = {
+  def renderField(typeName: String, metrics: FieldMetrics, prefix: String) = {
     val success = metrics.success.getCount
     val failure = metrics.failure.getCount
     val histogram = metrics.snapshot
     val count = metrics.count
 
-    val countStr = s"[$typeName] count: $success${if (failure > 0) "/" + failure else ""}"
+    val countStr = s"[$prefix$typeName] count: $success${if (failure > 0) "/" + failure else ""}"
 
     (countStr +: renderHistogram(count, histogram, unit).map{case (n, v) ⇒ s"$n: $v"}).mkString(", ")
   }

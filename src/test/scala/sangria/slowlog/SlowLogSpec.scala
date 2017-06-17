@@ -36,7 +36,7 @@ class SlowLogSpec extends WordSpec with Matchers with FutureResultSupport {
     Field("name", OptionType(StringType), resolve = _.value.name)))
 
   val DogType = ObjectType("Dog", interfaces[Unit, Dog](NamedType), fields[Unit, Dog](
-    Field("name", OptionType(StringType), resolve = _ ⇒ throw new IllegalStateException("AAAA")),
+    Field("name", OptionType(StringType), resolve = _.value.name),
     Field("barks", OptionType(BooleanType), resolve = _.value.barks)))
 
   val CatType = ObjectType("Cat", interfaces[Unit, Cat](NamedType), fields[Unit, Cat](
@@ -76,32 +76,55 @@ class SlowLogSpec extends WordSpec with Matchers with FutureResultSupport {
       // just experimenting at the moment
       val query =
         gql"""
+         query Foo {
+           friends {
+             ...Name
+             ...Name2
+           }
+         }
+
          query Test($$limit: Int!) {
             __typename
             name
+
+            ...Name1
 
             pets(limit: $$limit) {
               ... on Cat {
                 name
                 meows
+                ...Name
               }
               ... on Dog {
-                #some original query comment
-                name
+                ...Name1
+                ...Name1
                 foo: name
                 barks
               }
             }
           }
+
+          fragment Name on Named {
+            name
+            ...Name1
+          }
+
+          fragment Name1 on Named {
+            name
+          }
+
+          fragment Name2 on Named {
+            name
+          }
         """
 
       val vars = ScalaInput.scalaInput(Map("limit" → 10))
 
-      Executor.execute(schema, query, root = bob, variables = vars, middleware = SlowLog.extension :: Nil)
+//      Executor.execute(schema, query, root = bob, variables = vars, middleware = SlowLog.extension :: Nil)
 
-      val res = Executor.execute(schema, query, root = bob, variables = vars, middleware = SlowLog.print(addExtentions = true) :: Nil).await
+      val res = Executor.execute(schema, query, root = bob, operationName = Some("Test"), variables = vars, middleware = SlowLog.print(separateOp = false) :: Nil).await
 
-      println(Json.prettyPrint(res))
+//      println(Json.prettyPrint(res))
 
 //      import sangria.execution.ExecutionScheme.Extended
 
