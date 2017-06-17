@@ -19,9 +19,13 @@ scalacOptions ++= {
 }
 
 libraryDependencies ++= Seq(
-  "org.sangria-graphql" %% "sangria" % "1.2.1",
+  "org.sangria-graphql" %% "sangria" % "1.2.2-SNAPSHOT",
   "io.dropwizard.metrics" % "metrics-core" % "3.2.2",
-  "org.scalatest" %% "scalatest" % "3.0.3" % Test
+  "org.slf4j" % "slf4j-api" % "1.7.25",
+
+  "org.scalatest" %% "scalatest" % "3.0.3" % Test,
+  "org.sangria-graphql" %% "sangria-spray-json" % "1.0.0" % Test,
+  "org.slf4j" % "slf4j-simple" % "1.7.25" % Test
 )
 
 git.remoteRepo := "git@github.com:sangria-graphql/sangria-slowlog.git"

@@ -9,6 +9,7 @@ trait MetricRenderer {
   def renderField(typeName: String, metrics: FieldMetrics): String
   def renderVariables[In : InputUnmarshaller](variables: In, names: Vector[String]): String
   def renderExecution(durationNanos: Long, validationNanos: Long, queryReducerNanos: Long): String
+  def renderDuration(durationNanos: Long): String
 }
 
 object MetricRenderer {

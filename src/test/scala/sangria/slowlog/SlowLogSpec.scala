@@ -16,6 +16,8 @@ import sangria.visitor.VisitorCommand
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.concurrent.TrieMap
 import scala.concurrent.Future
+import sangria.marshalling.sprayJson._
+import scala.concurrent.duration._
 
 class SlowLogSpec extends WordSpec with Matchers with FutureResultSupport {
 
@@ -91,8 +93,10 @@ class SlowLogSpec extends WordSpec with Matchers with FutureResultSupport {
         """
 
       val vars = ScalaInput.scalaInput(Map("limit" → 10))
+      
+      val res = Executor.execute(schema, query, root = bob, variables = vars, middleware = SlowLog.print() :: Nil).await
 
-      Executor.execute(schema, query, root = bob, variables = vars, middleware = new SlowLogMiddleware :: Nil).await
+      println(res.prettyPrint)
     }
   }
 

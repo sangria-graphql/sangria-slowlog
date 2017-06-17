@@ -12,18 +12,37 @@ import sangria.visitor.VisitorCommand
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
 
-case class QueryMetrics(data: TrieMap[Vector[String], TrieMap[String, FieldMetrics]], startNanos: Long) {
-  def update(path: Vector[String], typeName: String, success: Boolean, startNanos: Long, endNanos: Long) = {
-    val forPath = data.getOrElseUpdate(path, TrieMap.empty)
+case class QueryMetrics(
+  pathData: TrieMap[Vector[String], TrieMap[String, FieldMetrics]],
+  fieldData: TrieMap[String, TrieMap[String, FieldMetrics]],
+  startNanos: Long,
+  collectFieldData: Boolean
+) {
+  def update(path: Vector[String], typeName: String, fieldName: String, success: Boolean, startNanos: Long, endNanos: Long) = {
+    val duration = endNanos - startNanos
+    val forPath = pathData.getOrElseUpdate(path, TrieMap.empty)
     val m = forPath.getOrElseUpdate(typeName, FieldMetrics(
       new Counter,
       new Counter,
       new Histogram(new ExponentiallyDecayingReservoir)))
 
     if (success) m.success.inc()
-    else m.success.dec()
+    else m.failure.inc()
 
-    m.histogram.update(endNanos - startNanos)
+    m.histogram.update(duration)
+
+    if (collectFieldData) {
+      val forType = fieldData.getOrElseUpdate(typeName, TrieMap.empty)
+      val fm = forType.getOrElseUpdate(fieldName, FieldMetrics(
+        new Counter,
+        new Counter,
+        new Histogram(new ExponentiallyDecayingReservoir)))
+
+      if (success) fm.success.inc()
+      else fm.failure.inc()
+
+      fm.histogram.update(duration)
+    }
   }
 
   def enrichQuery[In : InputUnmarshaller](
@@ -74,7 +93,7 @@ case class QueryMetrics(data: TrieMap[Vector[String], TrieMap[String, FieldMetri
                 else Vector.empty
               } else Vector.empty
 
-            data.get(path) match {
+            pathData.get(path) match {
               case Some(typeMetrics) ⇒
                 val rendered =
                   for {
