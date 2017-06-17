@@ -110,7 +110,9 @@ class SlowLogSpec extends WordSpec with Matchers with FutureResultSupport {
           }
 
           fragment Name1 on Named {
-            name
+            ... on Person {
+              name
+            }
           }
 
           fragment Name2 on Named {

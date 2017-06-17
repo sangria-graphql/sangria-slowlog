@@ -19,7 +19,7 @@ scalacOptions ++= {
 }
 
 libraryDependencies ++= Seq(
-  "org.sangria-graphql" %% "sangria" % "1.2.2-SNAPSHOT",
+  "org.sangria-graphql" %% "sangria" % "1.2.2",
   "io.dropwizard.metrics" % "metrics-core" % "3.2.2",
   "org.slf4j" % "slf4j-api" % "1.7.25",
 
