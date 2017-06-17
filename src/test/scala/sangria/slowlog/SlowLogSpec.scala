@@ -4,8 +4,9 @@ import java.util.concurrent.TimeUnit
 
 import com.codahale.metrics.{Counter, Histogram, MetricRegistry}
 
+import language.postfixOps
 import sangria.slowlog.util.{DebugUtil, FutureResultSupport}
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.{Matchers, OptionValues, WordSpec}
 import play.api.libs.json.Json
 import sangria.execution._
 import sangria.schema._
@@ -22,8 +23,7 @@ import scala.concurrent.duration._
 import sangria.marshalling.playJson._
 import sangria.slowlog.util._
 
-class SlowLogSpec extends WordSpec with Matchers with FutureResultSupport {
-
+class SlowLogSpec extends WordSpec with Matchers with FutureResultSupport with StringMatchers with OptionValues {
   trait Named {
     def name: Option[String]
   }
@@ -71,70 +71,224 @@ class SlowLogSpec extends WordSpec with Matchers with FutureResultSupport {
 
   val schema = Schema(PersonType)
 
+  val mainQuery =
+    gql"""
+     query Foo {
+       friends {
+         ...Name
+         ...Name2
+       }
+     }
+
+     query Test($$limit: Int!) {
+        __typename
+        name
+
+        ...Name1
+
+        pets(limit: $$limit) {
+          ... on Cat {
+            name
+            meows
+            ...Name
+          }
+          ... on Dog {
+            ...Name1
+            ...Name1
+            foo: name
+            barks
+          }
+        }
+      }
+
+      fragment Name on Named {
+        name
+        ...Name1
+      }
+
+      fragment Name1 on Named {
+        ... on Person {
+          name
+        }
+      }
+
+      fragment Name2 on Named {
+        name
+      }
+    """
+
   "SlowLog" should {
-    "do stuff" in {
-      // just experimenting at the moment
-      val query =
-        gql"""
-         query Foo {
-           friends {
-             ...Name
-             ...Name2
-           }
-         }
-
-         query Test($$limit: Int!) {
-            __typename
-            name
-
-            ...Name1
-
-            pets(limit: $$limit) {
-              ... on Cat {
-                name
-                meows
-                ...Name
-              }
-              ... on Dog {
-                ...Name1
-                ...Name1
-                foo: name
-                barks
-              }
-            }
-          }
-
-          fragment Name on Named {
-            name
-            ...Name1
-          }
-
-          fragment Name1 on Named {
-            ... on Person {
-              name
-            }
-          }
-
-          fragment Name2 on Named {
-            name
-          }
-        """
-
+    "enrich the query and separate operation" in {
       val vars = ScalaInput.scalaInput(Map("limit" → 10))
+      var enrichedQuery: Option[String] = None
 
-//      Executor.execute(schema, query, root = bob, variables = vars, middleware = SlowLog.extension :: Nil)
+      Executor.execute(schema, mainQuery,
+        root = bob,
+        operationName = Some("Test"),
+        variables = vars,
+        middleware = SlowLog.log((_, query) ⇒ enrichedQuery = Some(query), 0 seconds) :: Nil).await
 
-      val res = Executor.execute(schema, query, root = bob, operationName = Some("Test"), variables = vars, middleware = SlowLog.print(separateOp = false) :: Nil).await
+      removeTime(enrichedQuery.value, "ms") should equal (
+        """# [Execution Metrics] duration: 0ms, validation: 0ms, reducers: 0ms
+          |#
+          |# $limit = 10
+          |query Test($limit: Int!) {
+          |  # [Person] count: 1, time: 0ms
+          |  __typename
+          |
+          |  # [Person] count: 1, time: 0ms
+          |  name
+          |  ...Name1
+          |
+          |  # [Person] count: 1, time: 0ms
+          |  #
+          |  # $limit = 10
+          |  pets(limit: $limit) {
+          |    ... on Cat {
+          |      # [Cat] count: 20, min: 0ms, max: 0ms, mean: 0ms, p75: 0ms, p95: 0ms, p99: 0ms
+          |      name
+          |
+          |      # [Cat] count: 20, min: 0ms, max: 0ms, mean: 0ms, p75: 0ms, p95: 0ms, p99: 0ms
+          |      meows
+          |      ...Name
+          |    }
+          |    ... on Dog {
+          |      ...Name1
+          |      ...Name1
+          |
+          |      # [Dog] count: 1, time: 0ms
+          |      foo: name
+          |
+          |      # [Dog] count: 1, time: 0ms
+          |      barks
+          |    }
+          |  }
+          |}
+          |
+          |# [usages]
+          |# * pets
+          |fragment Name on Named {
+          |  # [pets.name Cat] count: 20, min: 0ms, max: 0ms, mean: 0ms, p75: 0ms, p95: 0ms, p99: 0ms
+          |  name
+          |  ...Name1
+          |}
+          |
+          |# [usages]
+          |# * (query root)
+          |# * pets.(Name)
+          |fragment Name1 on Named {
+          |  ... on Person {
+          |    # [name Person] count: 1, time: 0ms
+          |    name
+          |  }
+          |}""".stripMargin) (after being strippedOfCarriageReturns)
+    }
 
-//      println(Json.prettyPrint(res))
+    "enrich only relevant parts of the query" in {
+      val vars = ScalaInput.scalaInput(Map("limit" → 10))
+      var enrichedQuery: Option[String] = None
 
-//      import sangria.execution.ExecutionScheme.Extended
+      Executor.execute(schema, mainQuery,
+        root = bob,
+        operationName = Some("Test"),
+        variables = vars,
+        middleware = SlowLog.log((_, query) ⇒ enrichedQuery = Some(query), 0 seconds, separateOp = false) :: Nil).await
+      
+      removeTime(enrichedQuery.value, "ms") should equal (
+        """query Foo {
+          |  friends {
+          |    ...Name
+          |    ...Name2
+          |  }
+          |}
+          |
+          |# [Execution Metrics] duration: 0ms, validation: 0ms, reducers: 0ms
+          |#
+          |# $limit = 10
+          |query Test($limit: Int!) {
+          |  # [Person] count: 1, time: 0ms
+          |  __typename
+          |
+          |  # [Person] count: 1, time: 0ms
+          |  name
+          |  ...Name1
+          |
+          |  # [Person] count: 1, time: 0ms
+          |  #
+          |  # $limit = 10
+          |  pets(limit: $limit) {
+          |    ... on Cat {
+          |      # [Cat] count: 20, min: 0ms, max: 0ms, mean: 0ms, p75: 0ms, p95: 0ms, p99: 0ms
+          |      name
+          |
+          |      # [Cat] count: 20, min: 0ms, max: 0ms, mean: 0ms, p75: 0ms, p95: 0ms, p99: 0ms
+          |      meows
+          |      ...Name
+          |    }
+          |    ... on Dog {
+          |      ...Name1
+          |      ...Name1
+          |
+          |      # [Dog] count: 1, time: 0ms
+          |      foo: name
+          |
+          |      # [Dog] count: 1, time: 0ms
+          |      barks
+          |    }
+          |  }
+          |}
+          |
+          |# [usages]
+          |# * pets
+          |fragment Name on Named {
+          |  # [pets.name Cat] count: 20, min: 0ms, max: 0ms, mean: 0ms, p75: 0ms, p95: 0ms, p99: 0ms
+          |  name
+          |  ...Name1
+          |}
+          |
+          |# [usages]
+          |# * (query root)
+          |# * pets.(Name)
+          |fragment Name1 on Named {
+          |  ... on Person {
+          |    # [name Person] count: 1, time: 0ms
+          |    name
+          |  }
+          |}
+          |
+          |fragment Name2 on Named {
+          |  name
+          |}""".stripMargin) (after being strippedOfCarriageReturns)
+    }
 
-//      val metrics =
-//        SlowLog.extractQueryMetrics(
-//          Executor.execute(schema, query, root = bob, variables = vars, middleware = SlowLog.extension :: Nil).await)
-//
-//      println(metrics)
+    "use different time units" in {
+      val vars = ScalaInput.scalaInput(Map("limit" → 10))
+      var enrichedQuery: Option[String] = None
+
+      implicit val renderer = MetricRenderer.in(TimeUnit.SECONDS)
+
+      Executor.execute(schema,
+        gql"""
+          {
+            # test comment
+            name
+          }
+        """,
+        root = bob,
+        variables = vars,
+        middleware = SlowLog.log((_, query) ⇒ enrichedQuery = Some(query), 0 seconds, separateOp = false) :: Nil).await
+
+      removeTime(enrichedQuery.value, "s") should equal (
+        """# [Execution Metrics] duration: 0s, validation: 0s, reducers: 0s
+          |{
+          |  # test comment
+          |  #
+          |  # [Person] count: 1, time: 0s
+          |  name
+          |}""".stripMargin) (after being strippedOfCarriageReturns)
     }
   }
+
+  def removeTime(query: String, unit: String) =
+    query.replaceAll("\\d+" + unit, "0" + unit)
 }

@@ -216,8 +216,6 @@ case class QueryMetrics(
         }
       }
 
-      println(removeDuplicates(path.toVector.flatMap {case (n, cp) ⇒ loop(n, cp)}))
-
       fragName → removeDuplicates(path.toVector.flatMap {case (n, cp) ⇒ loop(n, cp)})
     }
   }
