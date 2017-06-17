@@ -5,7 +5,6 @@ import java.util.concurrent.TimeUnit
 import com.codahale.metrics.Snapshot
 import sangria.marshalling.InputUnmarshaller
 import sangria.ast
-import sangria.ast.Value
 
 trait MetricRenderer {
   def renderField(typeName: String, metrics: FieldMetrics, prefix: String): String

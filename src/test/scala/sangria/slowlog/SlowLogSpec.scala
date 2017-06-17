@@ -42,7 +42,7 @@ class SlowLogSpec extends WordSpec with Matchers with FutureResultSupport {
   val CatType = ObjectType("Cat", interfaces[Unit, Cat](NamedType), fields[Unit, Cat](
     Field("name", OptionType(StringType), resolve = c ⇒ {
       Future {
-        Thread.sleep((math.random() * 10).toLong)
+        Thread.sleep((math.random * 10).toLong)
         c.value.name
       }
 
