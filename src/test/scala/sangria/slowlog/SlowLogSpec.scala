@@ -2,22 +2,16 @@ package sangria.slowlog
 
 import java.util.concurrent.TimeUnit
 
-import com.codahale.metrics.{Counter, Histogram, MetricRegistry}
-
 import language.postfixOps
-import sangria.slowlog.util.{DebugUtil, FutureResultSupport}
+import sangria.slowlog.util.FutureResultSupport
 import org.scalatest.{Matchers, OptionValues, WordSpec}
-import play.api.libs.json.Json
 import sangria.execution._
 import sangria.schema._
 import sangria.macros._
-import sangria.ast
-import sangria.ast.AstVisitor
 import sangria.marshalling.ScalaInput
-import sangria.visitor.VisitorCommand
+
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.collection.concurrent.TrieMap
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import sangria.marshalling.playJson._
