@@ -93,4 +93,7 @@ object SlowLog {
 
   def extension(implicit renderer: MetricRenderer): SlowLog =
     new SlowLog(None, 0 seconds, true)
+
+  def extractQueryMetrics(result: ExecutionResult[_, _]): Option[QueryMetrics] =
+    result.middlewareVals.collectFirst {case (v: QueryMetrics, _: SlowLog) ⇒ v}
 }
