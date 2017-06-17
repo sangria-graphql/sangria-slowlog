@@ -16,7 +16,7 @@ class SlowLog(logFn: Option[(Document, Option[String], Long) ⇒ Unit], threshol
   type QueryVal = QueryMetrics
   type FieldVal = Long
 
-  val thresholdNanos = threshold.toNanos
+  private val thresholdNanos = threshold.toNanos
 
   def beforeQuery(context: MiddlewareQueryContext[Any, _, _]) =
     QueryMetrics(TrieMap.empty, TrieMap.empty, System.nanoTime(), addExtentions)
@@ -40,18 +40,14 @@ class SlowLog(logFn: Option[(Document, Option[String], Long) ⇒ Unit], threshol
     if (durationNanos > thresholdNanos)
       logFn.foreach(fn ⇒ fn(updatedQuery, context.operationName, durationNanos))
     
-    if (addExtentions) {
-      import sangria.marshalling.queryAst._
-      import sangria.ast
-
-      Vector(Extension(
-        ast.ObjectValue(
-          Vector(
-            ast.ObjectField("metrics", ast.ObjectValue(
-              Vector(
-                ast.ObjectField("name", ast.StringValue("test name")),
-                ast.ObjectField("executionTimeMs", ast.IntValue(123))))))): ast.Value))
-    } else Vector.empty
+    if (addExtentions)
+      Vector(queryVal.extension(
+        updatedQuery,
+        durationNanos,
+        context.validationTiming.durationNanos,
+        context.queryReducerTiming.durationNanos))
+    else
+      Vector.empty
   }
 
   def beforeField(queryVal: QueryVal, mctx: MiddlewareQueryContext[Any, _, _], ctx: Context[Any, _]) =
@@ -80,7 +76,7 @@ object SlowLog {
     query.separateOperation(operationName).fold("")(_.renderPretty)
 
   private def renderLog(query: Document, operationName: Option[String], durationNanos: Long)(implicit renderer: MetricRenderer): String =
-    s"Slow GraphQL query [${renderer.renderDuration(durationNanos)}].\n\n${renderQueryForLog(query, operationName)}"
+    renderer.renderLogMessage(durationNanos, renderQueryForLog(query, operationName))
 
   def apply(logger: Logger, threshold: FiniteDuration, addExtentions: Boolean = false)(implicit renderer: MetricRenderer): SlowLog =
     new SlowLog(Some((query, op, duration) ⇒ logger.warn(renderLog(query, op, duration))), threshold, addExtentions)

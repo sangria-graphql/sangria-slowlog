@@ -24,7 +24,7 @@ libraryDependencies ++= Seq(
   "org.slf4j" % "slf4j-api" % "1.7.25",
 
   "org.scalatest" %% "scalatest" % "3.0.3" % Test,
-  "org.sangria-graphql" %% "sangria-spray-json" % "1.0.0" % Test,
+  "org.sangria-graphql" %% "sangria-play-json" % "1.0.2" % Test,
   "org.slf4j" % "slf4j-simple" % "1.7.25" % Test
 )
 

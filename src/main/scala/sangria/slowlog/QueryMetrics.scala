@@ -1,16 +1,16 @@
 package sangria.slowlog
 
-import java.util.concurrent.TimeUnit
-
 import com.codahale.metrics.{Counter, ExponentiallyDecayingReservoir, Histogram}
 import sangria.ast
 import sangria.ast.AstVisitor
+import sangria.execution.Extension
 import sangria.marshalling.InputUnmarshaller
 import sangria.schema.{ObjectType, Schema}
 import sangria.visitor.VisitorCommand
 
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
+import sangria.marshalling.queryAst._
 
 case class QueryMetrics(
   pathData: TrieMap[Vector[String], TrieMap[String, FieldMetrics]],
@@ -145,4 +145,40 @@ case class QueryMetrics(
     else added
 
   def toComments(s: String): Vector[ast.Comment] = s.split("\n").map(c ⇒ ast.Comment(c.trim)).toVector
+
+  def extension(
+    enrichedQuery: ast.Document,
+    durationNanos: Long,
+    validationNanos: Long,
+    queryReducerNanos: Long
+  )(implicit renderer: MetricRenderer): Extension[ast.Value] = {
+    val sortedTypes =
+      fieldData.toVector
+          .map {case (typeName, fields) ⇒ typeName → fields.map {case (fieldName, metrics) ⇒ metrics.snapshot.get98thPercentile()}.max}
+          .sortBy(_._2)(Ordering[Double].reverse)
+
+    val typeMetrics =
+      sortedTypes.map { case (typeName, _) ⇒
+        val fields =
+          fieldData(typeName).toVector.sortBy(_._2.snapshot.get98thPercentile())(Ordering[Double].reverse).map { case (fieldName, metrics) ⇒
+            ast.ObjectField(fieldName, renderer.fieldMetrics(metrics))
+          }
+
+        ast.ObjectField(typeName, ast.ObjectValue(fields))
+      }
+
+    val root =
+      ast.ObjectValue(
+        Vector(
+          ast.ObjectField("metrics", ast.ObjectValue(
+            Vector(
+              renderer.durationField("execution", durationNanos),
+              renderer.durationField("validation", validationNanos),
+              renderer.durationField("reducers", queryReducerNanos),
+              ast.ObjectField("query", ast.StringValue(enrichedQuery.renderPretty)),
+              ast.ObjectField("types", ast.ObjectValue(typeMetrics)))))))
+
+    Extension(root: ast.Value)
+  }
+
 }

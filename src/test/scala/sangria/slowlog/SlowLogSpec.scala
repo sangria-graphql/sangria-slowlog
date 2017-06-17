@@ -3,8 +3,10 @@ package sangria.slowlog
 import java.util.concurrent.TimeUnit
 
 import com.codahale.metrics.{Counter, Histogram, MetricRegistry}
-import sangria.slowlog.util.FutureResultSupport
+
+import sangria.slowlog.util.{DebugUtil, FutureResultSupport}
 import org.scalatest.{Matchers, WordSpec}
+import play.api.libs.json.Json
 import sangria.execution._
 import sangria.schema._
 import sangria.macros._
@@ -16,8 +18,9 @@ import sangria.visitor.VisitorCommand
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.concurrent.TrieMap
 import scala.concurrent.Future
-import sangria.marshalling.sprayJson._
 import scala.concurrent.duration._
+import sangria.marshalling.playJson._
+import sangria.slowlog.util._
 
 class SlowLogSpec extends WordSpec with Matchers with FutureResultSupport {
 
@@ -33,7 +36,7 @@ class SlowLogSpec extends WordSpec with Matchers with FutureResultSupport {
     Field("name", OptionType(StringType), resolve = _.value.name)))
 
   val DogType = ObjectType("Dog", interfaces[Unit, Dog](NamedType), fields[Unit, Dog](
-    Field("name", OptionType(StringType), resolve = _.value.name),
+    Field("name", OptionType(StringType), resolve = _ ⇒ throw new IllegalStateException("AAAA")),
     Field("barks", OptionType(BooleanType), resolve = _.value.barks)))
 
   val CatType = ObjectType("Cat", interfaces[Unit, Cat](NamedType), fields[Unit, Cat](
@@ -93,11 +96,20 @@ class SlowLogSpec extends WordSpec with Matchers with FutureResultSupport {
         """
 
       val vars = ScalaInput.scalaInput(Map("limit" → 10))
-      
-      val res = Executor.execute(schema, query, root = bob, variables = vars, middleware = SlowLog.print() :: Nil).await
 
-      println(res.prettyPrint)
+      Executor.execute(schema, query, root = bob, variables = vars, middleware = SlowLog.extension :: Nil)
+
+      val res = Executor.execute(schema, query, root = bob, variables = vars, middleware = SlowLog.print(addExtentions = true) :: Nil).await
+
+      println(Json.prettyPrint(res))
+
+//      import sangria.execution.ExecutionScheme.Extended
+
+//      val metrics =
+//        SlowLog.extractQueryMetrics(
+//          Executor.execute(schema, query, root = bob, variables = vars, middleware = SlowLog.extension :: Nil).await)
+//
+//      println(metrics)
     }
   }
-
 }
