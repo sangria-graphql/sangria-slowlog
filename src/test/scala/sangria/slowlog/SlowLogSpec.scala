@@ -342,7 +342,7 @@ class SlowLogSpec extends WordSpec with Matchers with FutureResultSupport with S
         en → ev.transformField {
           case (n @ "query", JString(s)) ⇒
             n → JString(removeTime(s, unit))
-          case (n, JInt(i)) if n endsWith fieldUnit ⇒
+          case (n, JInt(_)) if n endsWith fieldUnit ⇒
             n → JInt(0)
         }
     }
