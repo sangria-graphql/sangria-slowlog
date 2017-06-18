@@ -25,7 +25,7 @@ Executor.execute(schema, query,
 
 If query execution takes more than 10 seconds to execute, then you will see similar info in the logs:
 
-```bash
+```graphql
 # [Execution Metrics] duration: 12362ms, validation: 0ms, reducers: 0ms
 #
 # $id = "1000"
