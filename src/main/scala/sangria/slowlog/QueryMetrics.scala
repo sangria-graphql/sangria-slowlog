@@ -167,7 +167,7 @@ case class QueryMetrics(
       case None ⇒
         typeMetrics.flatMap { case (typeName, metrics) ⇒
           toComments(renderer.renderField(typeName, metrics, prefix))
-        }.drop(1).toVector
+        }.toVector
     }
   }
 
