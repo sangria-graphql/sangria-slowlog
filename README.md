@@ -118,7 +118,7 @@ After middleware is added, you will see following JSON in the response:
 All `SlowLog` methods accept `addExtentions` argument which allows you to include these extensions along the way.
 
 With a small tweaking, you can also include "Profile" button in GraphiQL. On the server you just need to conditionally include
-`SlowLog.extension` middleware to make it work. [Here is an example](https://youtu.be/9B8f6V7e2Jc) of how this integration might look like.
+`SlowLog.extension` middleware to make it work. [Here is an example](https://youtu.be/OMa3SXC2mjA) of how this integration might look like.
 
 ## License
 
