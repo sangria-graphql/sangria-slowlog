@@ -5,7 +5,7 @@
 SBT Configuration (WIP, not published anywhere yet):
 
 ```scala
-libraryDependencies += "org.sangria-graphql" %% "sangria-slowlog" % "0.1.0"
+libraryDependencies += "org.sangria-graphql" %% "sangria-slowlog" % "0.1.1"
 ```
 
 ## Usage
