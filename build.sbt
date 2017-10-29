@@ -1,6 +1,6 @@
 name := "sangria-slowlog"
 organization := "org.sangria-graphql"
-version := "0.1.2-SNAPSHOT"
+version := "0.1.2"
 
 description := "Sangria middleware to log slow GraphQL queries"
 homepage := Some(url("http://sangria-graphql.org"))
@@ -19,16 +19,14 @@ scalacOptions ++= {
 }
 
 libraryDependencies ++= Seq(
-  "org.sangria-graphql" %% "sangria" % "1.3.0",
-  "io.dropwizard.metrics" % "metrics-core" % "3.2.4",
+  "org.sangria-graphql" %% "sangria" % "1.3.1",
+  "io.dropwizard.metrics" % "metrics-core" % "3.2.5",
   "org.slf4j" % "slf4j-api" % "1.7.25",
 
   "org.scalatest" %% "scalatest" % "3.0.4" % Test,
   "org.sangria-graphql" %% "sangria-json4s-native" % "1.0.0" % Test,
   "org.slf4j" % "slf4j-simple" % "1.7.25" % Test
 )
-
-git.remoteRepo := "git@github.com:sangria-graphql/sangria-slowlog.git"
 
 // Publishing
 
@@ -40,25 +38,15 @@ publishTo := Some(
     "snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
   else
     "releases" at "https://oss.sonatype.org/service/local/staging/deploy/maven2")
-
-// Site and docs
-
-site.settings
-site.includeScaladoc()
-ghpages.settings
+startYear := Some(2017)
+organizationHomepage := Some(url("https://github.com/sangria-graphql"))
+developers := Developer("OlegIlyenko", "Oleg Ilyenko", "", url("https://github.com/OlegIlyenko")) :: Nil
+scmInfo := Some(ScmInfo(
+  browseUrl = url("https://github.com/sangria-graphql/sangria-circe.git"),
+  connection = "scm:git:git@github.com:sangria-graphql/sangria-circe.git"))
 
 // nice *magenta* prompt!
 
 shellPrompt in ThisBuild := { state ⇒
   scala.Console.MAGENTA + Project.extract(state).currentRef.project + "> " + scala.Console.RESET
 }
-
-// Additional meta-info
-
-startYear := Some(2017)
-organizationHomepage := Some(url("https://github.com/sangria-graphql"))
-developers := Developer("OlegIlyenko", "Oleg Ilyenko", "", url("https://github.com/OlegIlyenko")) :: Nil
-scmInfo := Some(ScmInfo(
-  browseUrl = url("https://github.com/sangria-graphql/sangria-circe.git"),
-  connection = "scm:git:git@github.com:sangria-graphql/sangria-circe.git"
-))
