@@ -1,3 +1,7 @@
+## v0.1.4 (upcoming)
+
+* Added support for [apollo-tracing](https://github.com/apollographql/apollo-tracing) extension.
+
 ## v0.1.3 (2017-11-01)
 
 * Updated sangria to v1.3.2
