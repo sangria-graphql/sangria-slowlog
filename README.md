@@ -120,6 +120,19 @@ All `SlowLog` methods accept `addExtentions` argument which allows you to includ
 With a small tweaking, you can also include "Profile" button in GraphiQL. On the server you just need to conditionally include
 `SlowLog.extension` middleware to make it work. [Here is an example](https://youtu.be/OMa3SXC2mjA) of how this integration might look like.
 
+## Apollo Tracing Extension
+
+sangria-slowlog also supports [apollo-tracing](https://github.com/apollographql/apollo-tracing) format for metrics. In order
+to enable the extension, just use `ApolloTracingExtension` middleware (or a shortcut `SlowLog.apolloTracing`).
+
+Here is an example:
+
+```scala
+import sangria.slowlog.SlowLog
+
+Executor.execute(schema, query, middleware = SlowLog.apolloTracing :: Nil)
+```
+
 ## License
 
 **sangria-slowlog** is licensed under [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).

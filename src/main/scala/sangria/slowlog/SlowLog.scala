@@ -93,4 +93,6 @@ object SlowLog {
 
   def extractQueryMetrics(result: ExecutionResult[_, _]): Option[QueryMetrics] =
     result.middlewareVals.collectFirst {case (v: QueryMetrics, _: SlowLog) ⇒ v}
+
+  lazy val apolloTracing: Middleware[Any] = ApolloTracingExtension
 }
