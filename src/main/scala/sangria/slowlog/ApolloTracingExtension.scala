@@ -35,8 +35,8 @@ object ApolloTracingExtension extends Middleware[Any] with MiddlewareExtension[A
   def updateMetric(queryVal: QueryVal, fieldVal: FieldVal, ctx: Context[Any, _]): Unit =
     queryVal.fieldData.add(ObjectValue(
       "path" → ListValue(ctx.path.path.map(queryAstResultMarshaller.scalarNode(_, "Any", Set.empty))),
-      "fieldName" → StringValue(ctx.field.name),
       "parentType" → StringValue(ctx.parentType.name),
+      "fieldName" → StringValue(ctx.field.name),
       "returnType" → StringValue(SchemaRenderer.renderTypeName(ctx.field.fieldType)),
       "startOffset" → BigIntValue(fieldVal - queryVal.startNanos),
       "duration" → BigIntValue(System.nanoTime() - fieldVal)))
