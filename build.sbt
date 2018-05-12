@@ -1,13 +1,13 @@
 name := "sangria-slowlog"
 organization := "org.sangria-graphql"
-version := "0.1.6-SNAPSHOT"
+version := "0.1.6"
 
 description := "Sangria middleware to log slow GraphQL queries"
 homepage := Some(url("http://sangria-graphql.org"))
 licenses := Seq("Apache License, ASL Version 2.0" → url("http://www.apache.org/licenses/LICENSE-2.0"))
 
-scalaVersion := "2.12.4"
-crossScalaVersions := Seq("2.11.11", "2.12.4")
+scalaVersion := "2.12.6"
+crossScalaVersions := Seq("2.11.11", "2.12.6")
 
 scalacOptions ++= Seq("-deprecation", "-feature")
 
@@ -19,7 +19,7 @@ scalacOptions ++= {
 }
 
 libraryDependencies ++= Seq(
-  "org.sangria-graphql" %% "sangria" % "1.4.0",
+  "org.sangria-graphql" %% "sangria" % "1.4.1",
   "io.dropwizard.metrics" % "metrics-core" % "4.0.2",
   "org.slf4j" % "slf4j-api" % "1.7.25",
 
