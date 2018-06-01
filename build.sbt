@@ -22,7 +22,7 @@ libraryDependencies ++= Seq(
   "org.sangria-graphql" %% "sangria" % "1.4.1",
   "io.dropwizard.metrics" % "metrics-core" % "4.0.2",
   "org.slf4j" % "slf4j-api" % "1.7.25",
-
+  "io.opentracing.contrib" %% "opentracing-scala-concurrent" % "0.0.4",
   "org.scalatest" %% "scalatest" % "3.0.5" % Test,
   "org.sangria-graphql" %% "sangria-json4s-native" % "1.0.0" % Test,
   "org.slf4j" % "slf4j-simple" % "1.7.25" % Test
