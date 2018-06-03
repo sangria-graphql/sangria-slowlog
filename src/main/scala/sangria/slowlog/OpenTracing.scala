@@ -7,6 +7,8 @@ import sangria.schema.Context
 
 import scala.collection.concurrent.TrieMap
 
+final case class SpanAttachment(span: Span) extends MiddlewareAttachment
+
 class OpenTracing(implicit private val tracer: Tracer)
   extends Middleware[Any] with MiddlewareAfterField[Any] with MiddlewareErrorField[Any] {
   type QueryVal = TrieMap[Vector[Any], Span]
@@ -26,7 +28,7 @@ class OpenTracing(implicit private val tracer: Tracer)
       .buildSpan(ctx.field.name)
       .asChildOf(queryVal(parentPath))
       .start()
-    continue(queryVal.update(extractPath(ctx.path), span))
+    BeforeFieldResult(queryVal.update(extractPath(ctx.path), span), attachment = Some(SpanAttachment(span)))
   }
 
   def afterField(
