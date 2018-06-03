@@ -9,25 +9,34 @@ import scala.collection.concurrent.TrieMap
 
 final case class SpanAttachment(span: Span) extends MiddlewareAttachment
 
-class OpenTracing(implicit private val tracer: Tracer)
+class OpenTracing(implicit private val tracer: Tracer, defaultOperationName: String = "UNNAMED")
   extends Middleware[Any] with MiddlewareAfterField[Any] with MiddlewareErrorField[Any] {
   type QueryVal = TrieMap[Vector[Any], Span]
   type FieldVal = Unit
 
   def beforeQuery(context: MiddlewareQueryContext[Any, _, _]) = {
-    val span = tracer.buildSpan(context.operationName.getOrElse("UNNAMED")).start()
+    val span = tracer.buildSpan(context.operationName.getOrElse(defaultOperationName)).start()
     TrieMap(Vector() -> span)
   }
 
   def afterQuery(queryVal: QueryVal, context: MiddlewareQueryContext[Any, _, _]) =
-    queryVal(Vector()).finish()
+    queryVal.get(Vector()).foreach(_.finish())
 
   def beforeField(queryVal: QueryVal, mctx: MiddlewareQueryContext[Any, _, _], ctx: Context[Any, _]) = {
     val parentPath = extractPath(ctx.path).dropRight(1)
-    val span = tracer
-      .buildSpan(ctx.field.name)
-      .asChildOf(queryVal(parentPath))
-      .start()
+    val span =
+      queryVal.get(parentPath).map{
+        parentSpan =>
+          tracer
+            .buildSpan(ctx.field.name)
+            .asChildOf(parentSpan)
+            .start()
+      }.getOrElse{
+        tracer
+          .buildSpan(ctx.field.name)
+          .start()
+      }
+
     BeforeFieldResult(queryVal.update(extractPath(ctx.path), span), attachment = Some(SpanAttachment(span)))
   }
 
@@ -37,7 +46,7 @@ class OpenTracing(implicit private val tracer: Tracer)
                   value: Any,
                   mctx: MiddlewareQueryContext[Any, _, _],
                   ctx: Context[Any, _]) = {
-    queryVal(extractPath(ctx.path)).finish()
+    queryVal.get(extractPath(ctx.path)).foreach(_.finish())
     None
   }
 
@@ -47,7 +56,7 @@ class OpenTracing(implicit private val tracer: Tracer)
                   error: Throwable,
                   mctx: MiddlewareQueryContext[Any, _, _],
                   ctx: Context[Any, _]) =
-    queryVal(extractPath(ctx.path)).finish()
+    queryVal.get(extractPath(ctx.path)).foreach(_.finish())
 
   private def extractPath(path: ExecutionPath): Vector[String] =
     path.path.collect { case x: String => x }
