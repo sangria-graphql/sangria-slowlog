@@ -15,7 +15,10 @@ class OpenTracing(implicit private val tracer: Tracer, defaultOperationName: Str
   type FieldVal = Unit
 
   def beforeQuery(context: MiddlewareQueryContext[Any, _, _]) = {
-    val span = tracer.buildSpan(context.operationName.getOrElse(defaultOperationName)).start()
+    val span = tracer
+      .buildSpan(context.operationName.getOrElse(defaultOperationName))
+      .withTag("type", "graphql-query")
+      .start()
     TrieMap(Vector() -> span)
   }
 
@@ -23,21 +26,33 @@ class OpenTracing(implicit private val tracer: Tracer, defaultOperationName: Str
     queryVal.get(Vector()).foreach(_.finish())
 
   def beforeField(queryVal: QueryVal, mctx: MiddlewareQueryContext[Any, _, _], ctx: Context[Any, _]) = {
-    val parentPath = extractPath(ctx.path).dropRight(1)
+    val path = ctx.path.path
+    val parentPath = path
+      .dropRight(1)
+      .reverse
+      .dropWhile {
+        case _: String => false
+        case _: Int    => true
+      }
+      .reverse
+
     val span =
-      queryVal.get(parentPath).map{
-        parentSpan =>
+      queryVal
+        .get(parentPath)
+        .map { parentSpan =>
           tracer
             .buildSpan(ctx.field.name)
+            .withTag("type", "graphql-field")
             .asChildOf(parentSpan)
-            .start()
-      }.getOrElse{
-        tracer
-          .buildSpan(ctx.field.name)
-          .start()
-      }
+        }
+        .getOrElse {
+          tracer
+            .buildSpan(ctx.field.name)
+            .withTag("type", "graphql-field")
+        }
+        .start()
 
-    BeforeFieldResult(queryVal.update(extractPath(ctx.path), span), attachment = Some(SpanAttachment(span)))
+    BeforeFieldResult(queryVal.update(ctx.path.path, span), attachment = Some(SpanAttachment(span)))
   }
 
   def afterField(
@@ -46,7 +61,7 @@ class OpenTracing(implicit private val tracer: Tracer, defaultOperationName: Str
                   value: Any,
                   mctx: MiddlewareQueryContext[Any, _, _],
                   ctx: Context[Any, _]) = {
-    queryVal.get(extractPath(ctx.path)).foreach(_.finish())
+    queryVal.get(ctx.path.path).foreach(_.finish())
     None
   }
 
@@ -56,9 +71,6 @@ class OpenTracing(implicit private val tracer: Tracer, defaultOperationName: Str
                   error: Throwable,
                   mctx: MiddlewareQueryContext[Any, _, _],
                   ctx: Context[Any, _]) =
-    queryVal.get(extractPath(ctx.path)).foreach(_.finish())
-
-  private def extractPath(path: ExecutionPath): Vector[String] =
-    path.path.collect { case x: String => x }
+    queryVal.get(ctx.path.path).foreach(_.finish())
 
 }
