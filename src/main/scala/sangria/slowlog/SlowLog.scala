@@ -1,7 +1,8 @@
 package sangria.slowlog
 
-import language.postfixOps
+import io.opentracing.Tracer
 
+import language.postfixOps
 import org.slf4j.Logger
 import sangria.ast.Document
 import sangria.execution._
@@ -95,4 +96,7 @@ object SlowLog {
     result.middlewareVals.collectFirst {case (v: QueryMetrics, _: SlowLog) ⇒ v}
 
   lazy val apolloTracing: Middleware[Any] = ApolloTracingExtension
+
+  def openTracing(implicit tracer: Tracer): Middleware[Any] =
+    new OpenTracing
 }
