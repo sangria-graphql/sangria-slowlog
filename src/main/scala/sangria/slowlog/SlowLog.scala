@@ -97,6 +97,6 @@ object SlowLog {
 
   lazy val apolloTracing: Middleware[Any] = ApolloTracingExtension
 
-  def openTracing(implicit tracer: Tracer): Middleware[Any] =
-    new OpenTracing
+  def openTracing(defaultOperationName: String = "UNNAMED")(implicit tracer: Tracer): Middleware[Any] =
+    new OpenTracing(defaultOperationName)(tracer)
 }

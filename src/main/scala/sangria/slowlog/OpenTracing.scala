@@ -1,6 +1,5 @@
 package sangria.slowlog
 
-
 import io.opentracing.{Span, Tracer}
 import sangria.execution._
 import sangria.schema.Context
@@ -9,7 +8,7 @@ import scala.collection.concurrent.TrieMap
 
 final case class SpanAttachment(span: Span) extends MiddlewareAttachment
 
-class OpenTracing(implicit private val tracer: Tracer, defaultOperationName: String = "UNNAMED")
+class OpenTracing(defaultOperationName: String = "UNNAMED")(implicit tracer: Tracer)
   extends Middleware[Any] with MiddlewareAfterField[Any] with MiddlewareErrorField[Any] {
   type QueryVal = TrieMap[Vector[Any], Span]
   type FieldVal = Unit
@@ -56,21 +55,20 @@ class OpenTracing(implicit private val tracer: Tracer, defaultOperationName: Str
   }
 
   def afterField(
-                  queryVal: QueryVal,
-                  fieldVal: FieldVal,
-                  value: Any,
-                  mctx: MiddlewareQueryContext[Any, _, _],
-                  ctx: Context[Any, _]) = {
+      queryVal: QueryVal,
+      fieldVal: FieldVal,
+      value: Any,
+      mctx: MiddlewareQueryContext[Any, _, _],
+      ctx: Context[Any, _]) = {
     queryVal.get(ctx.path.path).foreach(_.finish())
     None
   }
 
   def fieldError(
-                  queryVal: QueryVal,
-                  fieldVal: FieldVal,
-                  error: Throwable,
-                  mctx: MiddlewareQueryContext[Any, _, _],
-                  ctx: Context[Any, _]) =
+      queryVal: QueryVal,
+      fieldVal: FieldVal,
+      error: Throwable,
+      mctx: MiddlewareQueryContext[Any, _, _],
+      ctx: Context[Any, _]) =
     queryVal.get(ctx.path.path).foreach(_.finish())
-
 }

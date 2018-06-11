@@ -88,7 +88,7 @@ class OpenTracingSpec extends WordSpec with Matchers with FutureResultSupport wi
           root = bob,
           operationName = Some("Test"),
           variables = vars,
-          middleware = SlowLog.openTracing :: Nil).await
+          middleware = SlowLog.openTracing() :: Nil).await
 
       scope.span.finish()
 

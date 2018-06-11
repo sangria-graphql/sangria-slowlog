@@ -134,6 +134,21 @@ import sangria.slowlog.SlowLog
 Executor.execute(schema, query, middleware = SlowLog.apolloTracing :: Nil)
 ```
 
+## OpenTracing Support
+
+sangria-slowlog supports [OpenTracing](http://opentracing.io/) with `OpenTracing` middleware. In order
+to enable it, just use `OpenTracing` middleware (or a shortcut `SlowLog.openTracing`).
+
+Here is an example:
+
+```scala
+import sangria.slowlog.SlowLog
+
+Executor.execute(schema, query, middleware = SlowLog.openTracing() :: Nil)
+```
+
+You would need and implicit instance of a `Tracer` available in the scope.
+
 ## License
 
 **sangria-slowlog** is licensed under [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
