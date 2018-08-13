@@ -1,6 +1,6 @@
 name := "sangria-slowlog"
 organization := "org.sangria-graphql"
-version := "0.1.7-SNAPSHOT"
+version := "0.1.7"
 
 description := "Sangria middleware to log slow GraphQL queries"
 homepage := Some(url("http://sangria-graphql.org"))
@@ -20,7 +20,7 @@ scalacOptions ++= {
 
 libraryDependencies ++= Seq(
   "org.sangria-graphql" %% "sangria" % "1.4.1",
-  "io.dropwizard.metrics" % "metrics-core" % "4.0.2",
+  "io.dropwizard.metrics" % "metrics-core" % "4.0.3",
   "org.slf4j" % "slf4j-api" % "1.7.25",
   "io.opentracing.contrib" %% "opentracing-scala-concurrent" % "0.0.4",
   "io.opentracing" % "opentracing-mock" % "0.31.0",
