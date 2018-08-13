@@ -1,6 +1,6 @@
 name := "sangria-slowlog"
 organization := "org.sangria-graphql"
-version := "0.1.7"
+version := "0.1.8-SNAPSHOT"
 
 description := "Sangria middleware to log slow GraphQL queries"
 homepage := Some(url("http://sangria-graphql.org"))
