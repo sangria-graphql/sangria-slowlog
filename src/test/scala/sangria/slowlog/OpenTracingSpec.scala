@@ -99,13 +99,13 @@ class OpenTracingSpec extends WordSpec with Matchers with FutureResultSupport wi
       querySpan.parentId shouldEqual 2
       val typeNameSpan = finishedSpans.find(_.operationName == "__typename").get
       typeNameSpan.parentId shouldEqual querySpan.spanId
-      val bobSpan = finishedSpans.filter(s => s.operationName == "name" && s.parentId == querySpan.spanId)
+      val bobSpan = finishedSpans.filter(s ⇒ s.operationName == "name" && s.parentId == querySpan.spanId)
       bobSpan.size shouldBe 1
-      val petsSpan = finishedSpans.filter(s => s.operationName == "pets" && s.parentId == querySpan.spanId)
+      val petsSpan = finishedSpans.filter(s ⇒ s.operationName == "pets" && s.parentId == querySpan.spanId)
       petsSpan.size shouldBe 1
-      val petsNameSpan = finishedSpans.filter(s => s.operationName == "name" && s.parentId == petsSpan.head.spanId)
+      val petsNameSpan = finishedSpans.filter(s ⇒ s.operationName == "name" && s.parentId == petsSpan.head.spanId)
       petsNameSpan.size shouldBe 4
-      val petsMeowsSpan = finishedSpans.filter(s => s.operationName == "meows" && s.parentId == petsSpan.head.spanId)
+      val petsMeowsSpan = finishedSpans.filter(s ⇒ s.operationName == "meows" && s.parentId == petsSpan.head.spanId)
       petsMeowsSpan.size shouldBe 4
     }
   }

@@ -1,6 +1,6 @@
 package sangria.slowlog
 
-import io.opentracing.Tracer
+import io.opentracing.{Span, Tracer}
 
 import language.postfixOps
 import org.slf4j.Logger
@@ -97,6 +97,6 @@ object SlowLog {
 
   lazy val apolloTracing: Middleware[Any] = ApolloTracingExtension
 
-  def openTracing(defaultOperationName: String = "UNNAMED")(implicit tracer: Tracer): Middleware[Any] =
-    new OpenTracing(defaultOperationName)(tracer)
+  def openTracing(parentSpan: Option[Span] = None, defaultOperationName: String = "UNNAMED")(implicit tracer: Tracer): Middleware[Any] =
+    new OpenTracing(parentSpan, defaultOperationName)(tracer)
 }

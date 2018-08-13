@@ -6,23 +6,27 @@ import sangria.schema.Context
 
 import scala.collection.concurrent.TrieMap
 
-final case class SpanAttachment(span: Span) extends MiddlewareAttachment
-
-class OpenTracing(defaultOperationName: String = "UNNAMED")(implicit tracer: Tracer)
+class OpenTracing(parentSpan: Option[Span] = None, defaultOperationName: String = "UNNAMED")(implicit tracer: Tracer)
   extends Middleware[Any] with MiddlewareAfterField[Any] with MiddlewareErrorField[Any] {
   type QueryVal = TrieMap[Vector[Any], Span]
   type FieldVal = Unit
 
   def beforeQuery(context: MiddlewareQueryContext[Any, _, _]) = {
-    val span = tracer
+    val builder = tracer
       .buildSpan(context.operationName.getOrElse(defaultOperationName))
       .withTag("type", "graphql-query")
-      .start()
-    TrieMap(Vector() -> span)
+
+    val span =
+      parentSpan match {
+        case Some(parent) ⇒ builder.asChildOf(parent)
+        case None ⇒ builder
+      }
+
+    TrieMap(Vector.empty → span.start())
   }
 
   def afterQuery(queryVal: QueryVal, context: MiddlewareQueryContext[Any, _, _]) =
-    queryVal.get(Vector()).foreach(_.finish())
+    queryVal.get(Vector.empty).foreach(_.finish())
 
   def beforeField(queryVal: QueryVal, mctx: MiddlewareQueryContext[Any, _, _], ctx: Context[Any, _]) = {
     val path = ctx.path.path
@@ -30,15 +34,15 @@ class OpenTracing(defaultOperationName: String = "UNNAMED")(implicit tracer: Tra
       .dropRight(1)
       .reverse
       .dropWhile {
-        case _: String => false
-        case _: Int    => true
+        case _: String ⇒ false
+        case _: Int ⇒ true
       }
       .reverse
 
     val span =
       queryVal
         .get(parentPath)
-        .map { parentSpan =>
+        .map { parentSpan ⇒
           tracer
             .buildSpan(ctx.field.name)
             .withTag("type", "graphql-field")
@@ -72,3 +76,5 @@ class OpenTracing(defaultOperationName: String = "UNNAMED")(implicit tracer: Tra
       ctx: Context[Any, _]) =
     queryVal.get(ctx.path.path).foreach(_.finish())
 }
+
+final case class SpanAttachment(span: Span) extends MiddlewareAttachment
