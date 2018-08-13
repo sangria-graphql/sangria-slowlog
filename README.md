@@ -149,6 +149,16 @@ Executor.execute(schema, query, middleware = SlowLog.openTracing() :: Nil)
 
 You would need and implicit instance of a `Tracer` available in the scope.
 
+In order to access field's active `Span` in the resolve function, you can use middleware attachment `SpanAttachment`:
+
+```scala
+Fied(..., resolve = ctx ⇒ {
+  val parentSpan: Option[Span] = ctx.attachment[SpanAttachment].map(_.span)
+  
+  // ...
+})
+``` 
+
 ## License
 
 **sangria-slowlog** is licensed under [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).

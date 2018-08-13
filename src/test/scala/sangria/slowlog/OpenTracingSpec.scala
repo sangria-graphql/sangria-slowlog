@@ -78,33 +78,36 @@ class OpenTracingSpec extends WordSpec with Matchers with FutureResultSupport wi
 
   "OpenTracing middleware" should {
     "Nest the spans correctly" in {
-
       val vars = ScalaInput.scalaInput(Map("limit" → 4))
 
       val scope = mockTracer.buildSpan("root").startActive(false)
 
-      val result =
-        Executor.execute(schema, mainQuery,
-          root = bob,
-          operationName = Some("Test"),
-          variables = vars,
-          middleware = SlowLog.openTracing() :: Nil).await
+      Executor.execute(schema, mainQuery,
+        root = bob,
+        operationName = Some("Test"),
+        variables = vars,
+        middleware = SlowLog.openTracing() :: Nil).await
 
       scope.span.finish()
 
       val finishedSpans = mockTracer.finishedSpans.asScala.map(SimpleMockSpan.apply).toSet
-      println(finishedSpans)
       finishedSpans.forall(_.traceId == 1) shouldBe true
+
       val querySpan = finishedSpans.find(_.operationName == "Test").get
       querySpan.parentId shouldEqual 2
+
       val typeNameSpan = finishedSpans.find(_.operationName == "__typename").get
       typeNameSpan.parentId shouldEqual querySpan.spanId
+
       val bobSpan = finishedSpans.filter(s ⇒ s.operationName == "name" && s.parentId == querySpan.spanId)
       bobSpan.size shouldBe 1
+
       val petsSpan = finishedSpans.filter(s ⇒ s.operationName == "pets" && s.parentId == querySpan.spanId)
       petsSpan.size shouldBe 1
+
       val petsNameSpan = finishedSpans.filter(s ⇒ s.operationName == "name" && s.parentId == petsSpan.head.spanId)
       petsNameSpan.size shouldBe 4
+
       val petsMeowsSpan = finishedSpans.filter(s ⇒ s.operationName == "meows" && s.parentId == petsSpan.head.spanId)
       petsMeowsSpan.size shouldBe 4
     }
