@@ -1,3 +1,7 @@
+## v0.1.8 (2018-08-03)
+
+* Updated sangria to v1.4.2
+
 ## v0.1.7 (2018-08-03)
 
 * [OpenTracing Support](https://github.com/sangria-graphql/sangria-slowlog#opentracing-support)
