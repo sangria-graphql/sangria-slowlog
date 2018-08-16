@@ -1,6 +1,6 @@
 package sangria.slowlog
 
-import io.opentracing.{Span, Tracer}
+import io.opentracing.{Scope, Span, Tracer}
 import sangria.execution._
 import sangria.schema.Context
 
@@ -8,7 +8,7 @@ import scala.collection.concurrent.TrieMap
 
 class OpenTracing(parentSpan: Option[Span] = None, defaultOperationName: String = "UNNAMED")(implicit tracer: Tracer)
   extends Middleware[Any] with MiddlewareAfterField[Any] with MiddlewareErrorField[Any] {
-  type QueryVal = TrieMap[Vector[Any], Span]
+  type QueryVal = TrieMap[Vector[Any], Scope]
   type FieldVal = Unit
 
   def beforeQuery(context: MiddlewareQueryContext[Any, _, _]) = {
@@ -22,11 +22,14 @@ class OpenTracing(parentSpan: Option[Span] = None, defaultOperationName: String 
         case None ⇒ builder
       }
 
-    TrieMap(Vector.empty → span.start())
+    TrieMap(Vector.empty → span.startActive(false))
   }
 
   def afterQuery(queryVal: QueryVal, context: MiddlewareQueryContext[Any, _, _]) =
-    queryVal.get(Vector.empty).foreach(_.finish())
+    queryVal.get(Vector.empty).foreach(resp => {
+      resp.span().finish()
+      resp.close()
+    })
 
   def beforeField(queryVal: QueryVal, mctx: MiddlewareQueryContext[Any, _, _], ctx: Context[Any, _]) = {
     val path = ctx.path.path
@@ -39,23 +42,23 @@ class OpenTracing(parentSpan: Option[Span] = None, defaultOperationName: String 
       }
       .reverse
 
-    val span =
+    val scope =
       queryVal
         .get(parentPath)
-        .map { parentSpan ⇒
+        .map { parentScope ⇒
           tracer
             .buildSpan(ctx.field.name)
             .withTag("type", "graphql-field")
-            .asChildOf(parentSpan)
+            .asChildOf(parentScope.span())
         }
         .getOrElse {
           tracer
             .buildSpan(ctx.field.name)
             .withTag("type", "graphql-field")
         }
-        .start()
+        .startActive(false)
 
-    BeforeFieldResult(queryVal.update(ctx.path.path, span), attachment = Some(SpanAttachment(span)))
+    BeforeFieldResult(queryVal.update(ctx.path.path, scope), attachment = Some(ScopeAttachment(scope)))
   }
 
   def afterField(
@@ -64,7 +67,10 @@ class OpenTracing(parentSpan: Option[Span] = None, defaultOperationName: String 
       value: Any,
       mctx: MiddlewareQueryContext[Any, _, _],
       ctx: Context[Any, _]) = {
-    queryVal.get(ctx.path.path).foreach(_.finish())
+    queryVal.get(ctx.path.path).foreach(scope => {
+      scope.span().finish()
+      scope.close()
+    })
     None
   }
 
@@ -74,7 +80,10 @@ class OpenTracing(parentSpan: Option[Span] = None, defaultOperationName: String 
       error: Throwable,
       mctx: MiddlewareQueryContext[Any, _, _],
       ctx: Context[Any, _]) =
-    queryVal.get(ctx.path.path).foreach(_.finish())
+    queryVal.get(ctx.path.path).foreach(scope => {
+      scope.span().finish()
+      scope.close()
+    })
 }
 
-final case class SpanAttachment(span: Span) extends MiddlewareAttachment
+final case class ScopeAttachment(span: Scope) extends MiddlewareAttachment
