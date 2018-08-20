@@ -86,4 +86,6 @@ class OpenTracing(parentSpan: Option[Span] = None, defaultOperationName: String 
     })
 }
 
-final case class ScopeAttachment(scope: Scope) extends MiddlewareAttachment
+final case class ScopeAttachment(scope: Scope) extends MiddlewareAttachment {
+  def span = scope.span()
+}
