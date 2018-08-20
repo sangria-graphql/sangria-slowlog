@@ -149,15 +149,17 @@ Executor.execute(schema, query, middleware = SlowLog.openTracing() :: Nil)
 
 You would need and implicit instance of a `Tracer` available in the scope.
 
-In order to access field's active `Span` in the resolve function, you can use middleware attachment `SpanAttachment`:
+In order to access field's `span` in the resolve function, you can use middleware attachment `ScopeAttachment`:
 
 ```scala
 Fied(..., resolve = ctx ⇒ {
-  val parentSpan: Option[Span] = ctx.attachment[SpanAttachment].map(_.span)
+  val parentSpan: Option[Span] = ctx.attachment[ScopeAttachment].map(_.scope).map(_.span)
   
   // ...
 })
 ``` 
+
+The middleware creates spans using OpenTracings `startActive` API, so you can inject the active span into a carrier, for instance an HTTP request, if resolving a field requires a network request, and follow the trace in the responding service.
 
 ## License
 
