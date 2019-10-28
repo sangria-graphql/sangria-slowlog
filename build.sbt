@@ -24,7 +24,7 @@ libraryDependencies ++= Seq(
   "org.slf4j" % "slf4j-api" % "1.7.28",
   "io.opentracing.contrib" %% "opentracing-scala-concurrent" % "0.0.4",
   "io.opentracing" % "opentracing-mock" % "0.31.0",
-  "org.scalatest" %% "scalatest" % "3.0.5" % Test,
+  "org.scalatest" %% "scalatest" % "3.0.8" % Test,
   "org.sangria-graphql" %% "sangria-json4s-native" % "1.0.0" % Test,
   "org.slf4j" % "slf4j-simple" % "1.7.28" % Test
 )
