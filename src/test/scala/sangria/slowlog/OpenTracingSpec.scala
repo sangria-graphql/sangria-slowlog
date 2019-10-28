@@ -11,6 +11,7 @@ import io.opentracing.mock.{MockSpan, MockTracer}
 import io.opentracing.mock.MockTracer.Propagator
 import io.opentracing.util.ThreadLocalScopeManager
 import io.opentracing.contrib.concurrent.TracedExecutionContext
+
 import scala.concurrent.ExecutionContext.global
 import scala.language.postfixOps
 import scala.collection.JavaConverters._
@@ -88,7 +89,7 @@ class OpenTracingSpec extends WordSpec with Matchers with FutureResultSupport wi
         variables = vars,
         middleware = SlowLog.openTracing() :: Nil).await
 
-      scope.span.finish()
+      mockTracer.activeSpan().finish()
 
       val finishedSpans = mockTracer.finishedSpans.asScala.map(SimpleMockSpan.apply).toSet
       finishedSpans.forall(_.traceId == 1) shouldBe true
