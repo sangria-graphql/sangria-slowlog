@@ -1,6 +1,7 @@
 name := "sangria-slowlog"
 organization := "org.sangria-graphql"
-version := "0.1.9-SNAPSHOT"
+
+mimaPreviousArtifacts := Set("org.sangria-graphql" %% "sangria-slowlog" % "0.1.8")
 
 description := "Sangria middleware to log slow GraphQL queries"
 homepage := Some(url("http://sangria-graphql.org"))
@@ -12,10 +13,10 @@ crossScalaVersions := Seq("2.11.12", scalaVersion.value)
 scalacOptions ++= Seq("-deprecation", "-feature")
 
 scalacOptions ++= {
-  if (scalaVersion.value startsWith "2.12")
-    Seq.empty
-  else
+  if (scalaVersion.value startsWith "2.11")
     Seq("-target:jvm-1.7")
+  else
+    Seq.empty
 }
 
 libraryDependencies ++= Seq(
@@ -31,6 +32,8 @@ libraryDependencies ++= Seq(
 
 // Publishing
 
+releaseCrossBuild := true
+releasePublishArtifactsAction := PgpKeys.publishSigned.value
 publishMavenStyle := true
 publishArtifact in Test := false
 pomIncludeRepository := (_ ⇒ false)
@@ -43,8 +46,8 @@ startYear := Some(2017)
 organizationHomepage := Some(url("https://github.com/sangria-graphql"))
 developers := Developer("OlegIlyenko", "Oleg Ilyenko", "", url("https://github.com/OlegIlyenko")) :: Nil
 scmInfo := Some(ScmInfo(
-  browseUrl = url("https://github.com/sangria-graphql/sangria-circe.git"),
-  connection = "scm:git:git@github.com:sangria-graphql/sangria-circe.git"))
+  browseUrl = url("https://github.com/sangria-graphql-org/sangria-circe.git"),
+  connection = "scm:git:git@github.com:sangria-graphql-org/sangria-circe.git"))
 
 // nice *magenta* prompt!
 
