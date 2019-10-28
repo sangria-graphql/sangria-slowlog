@@ -23,7 +23,7 @@ libraryDependencies ++= Seq(
   "io.dropwizard.metrics" % "metrics-core" % "4.1.1",
   "org.slf4j" % "slf4j-api" % "1.7.28",
   "io.opentracing.contrib" %% "opentracing-scala-concurrent" % "0.0.4",
-  "io.opentracing" % "opentracing-mock" % "0.31.0" % Test,
+  "io.opentracing" % "opentracing-mock" % "0.32.0" % Test,
   "org.scalatest" %% "scalatest" % "3.0.8" % Test,
   "org.sangria-graphql" %% "sangria-json4s-native" % "1.0.0" % Test,
   "org.slf4j" % "slf4j-simple" % "1.7.28" % Test
