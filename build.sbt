@@ -8,16 +8,9 @@ homepage := Some(url("http://sangria-graphql.org"))
 licenses := Seq("Apache License, ASL Version 2.0" → url("http://www.apache.org/licenses/LICENSE-2.0"))
 
 scalaVersion := "2.12.10"
-crossScalaVersions := Seq("2.11.12", scalaVersion.value)
+crossScalaVersions := Seq(scalaVersion.value)
 
 scalacOptions ++= Seq("-deprecation", "-feature")
-
-scalacOptions ++= {
-  if (scalaVersion.value startsWith "2.11")
-    Seq("-target:jvm-1.7")
-  else
-    Seq.empty
-}
 
 libraryDependencies ++= Seq(
   "org.sangria-graphql" %% "sangria" % "1.4.2",
