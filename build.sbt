@@ -8,23 +8,16 @@ homepage := Some(url("http://sangria-graphql.org"))
 licenses := Seq("Apache License, ASL Version 2.0" → url("http://www.apache.org/licenses/LICENSE-2.0"))
 
 scalaVersion := "2.12.10"
-crossScalaVersions := Seq("2.11.12", scalaVersion.value)
+crossScalaVersions := Seq(scalaVersion.value)
 
 scalacOptions ++= Seq("-deprecation", "-feature")
-
-scalacOptions ++= {
-  if (scalaVersion.value startsWith "2.11")
-    Seq("-target:jvm-1.7")
-  else
-    Seq.empty
-}
 
 libraryDependencies ++= Seq(
   "org.sangria-graphql" %% "sangria" % "1.4.2",
   "io.dropwizard.metrics" % "metrics-core" % "4.1.1",
   "org.slf4j" % "slf4j-api" % "1.7.28",
-  "io.opentracing.contrib" %% "opentracing-scala-concurrent" % "0.0.4",
-  "io.opentracing" % "opentracing-mock" % "0.32.0" % Test,
+  "io.opentracing.contrib" %% "opentracing-scala-concurrent" % "0.0.6",
+  "io.opentracing" % "opentracing-mock" % "0.33.0" % Test,
   "org.scalatest" %% "scalatest" % "3.0.8" % Test,
   "org.sangria-graphql" %% "sangria-json4s-native" % "1.0.0" % Test,
   "org.slf4j" % "slf4j-simple" % "1.7.28" % Test
