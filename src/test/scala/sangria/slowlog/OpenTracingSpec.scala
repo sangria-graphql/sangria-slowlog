@@ -81,7 +81,9 @@ class OpenTracingSpec extends WordSpec with Matchers with FutureResultSupport wi
     "Nest the spans correctly" in {
       val vars = ScalaInput.scalaInput(Map("limit" → 4))
 
-      val scope = mockTracer.buildSpan("root").startActive(false)
+      val spanBuilder = mockTracer.buildSpan("root")
+      val span = spanBuilder.start()
+      val scope = mockTracer.activateSpan(span)
 
       Executor.execute(schema, mainQuery,
         root = bob,
