@@ -7,13 +7,13 @@ description := "Sangria middleware to log slow GraphQL queries"
 homepage := Some(url("http://sangria-graphql.org"))
 licenses := Seq("Apache License, ASL Version 2.0" → url("http://www.apache.org/licenses/LICENSE-2.0"))
 
-scalaVersion := "2.12.10"
-crossScalaVersions := Seq(scalaVersion.value)
+scalaVersion := "2.13.0"
+crossScalaVersions := Seq("2.12.10", scalaVersion.value)
 
 scalacOptions ++= Seq("-deprecation", "-feature")
 
 libraryDependencies ++= Seq(
-  "org.sangria-graphql" %% "sangria" % "1.4.2",
+  "org.sangria-graphql" %% "sangria" % "2.0.0-M1",
   "io.dropwizard.metrics" % "metrics-core" % "4.1.1",
   "org.slf4j" % "slf4j-api" % "1.7.28",
   "io.opentracing.contrib" %% "opentracing-scala-concurrent" % "0.0.6",
