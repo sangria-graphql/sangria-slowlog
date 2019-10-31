@@ -12,7 +12,7 @@ import sangria.schema.Context
 import scala.collection.concurrent.TrieMap
 import scala.concurrent.duration._
 
-class SlowLog(logFn: Option[(Document, Option[String], Long) ⇒ Unit], threshold: FiniteDuration, addExtensions: Boolean)(implicit renderer: MetricRenderer)
+class SlowLog(logFn: Option[(Document, Option[String], Long) => Unit], threshold: FiniteDuration, addExtensions: Boolean)(implicit renderer: MetricRenderer)
     extends Middleware[Any] with MiddlewareAfterField[Any] with MiddlewareErrorField[Any] with MiddlewareExtension[Any] {
   type QueryVal = QueryMetrics
   type FieldVal = Long
@@ -39,7 +39,7 @@ class SlowLog(logFn: Option[(Document, Option[String], Long) ⇒ Unit], threshol
       context.queryReducerTiming.durationNanos)
 
     if (durationNanos > thresholdNanos)
-      logFn.foreach(fn ⇒ fn(updatedQuery, context.operationName, durationNanos))
+      logFn.foreach(fn => fn(updatedQuery, context.operationName, durationNanos))
     
     if (addExtensions)
       Vector(queryVal.extension(
@@ -81,19 +81,19 @@ object SlowLog {
     renderer.renderLogMessage(durationNanos, renderQueryForLog(query, operationName, separateOp))
 
   def apply(logger: Logger, threshold: FiniteDuration, addExtensions: Boolean = false, separateOp: Boolean = true)(implicit renderer: MetricRenderer): SlowLog =
-    new SlowLog(Some((query, op, duration) ⇒ logger.warn(renderLog(query, op, duration, separateOp))), threshold, addExtensions)
+    new SlowLog(Some((query, op, duration) => logger.warn(renderLog(query, op, duration, separateOp))), threshold, addExtensions)
 
-  def log(logFn: (Long, String) ⇒ Unit, threshold: FiniteDuration, addExtensions: Boolean = false, separateOp: Boolean = true)(implicit renderer: MetricRenderer): SlowLog =
-    new SlowLog(Some((query, op, duration) ⇒ logFn(duration, renderQueryForLog(query, op, separateOp))), threshold, addExtensions)
+  def log(logFn: (Long, String) => Unit, threshold: FiniteDuration, addExtensions: Boolean = false, separateOp: Boolean = true)(implicit renderer: MetricRenderer): SlowLog =
+    new SlowLog(Some((query, op, duration) => logFn(duration, renderQueryForLog(query, op, separateOp))), threshold, addExtensions)
 
   def print(threshold: FiniteDuration = 0 seconds, addExtensions: Boolean = false, separateOp: Boolean = true)(implicit renderer: MetricRenderer): SlowLog =
-    new SlowLog(Some((query, op, duration) ⇒ println(renderLog(query, op, duration,separateOp))), threshold, addExtensions)
+    new SlowLog(Some((query, op, duration) => println(renderLog(query, op, duration,separateOp))), threshold, addExtensions)
 
   def extension(implicit renderer: MetricRenderer): SlowLog =
     new SlowLog(None, 0 seconds, true)
 
   def extractQueryMetrics(result: ExecutionResult[_, _]): Option[QueryMetrics] =
-    result.middlewareVals.collectFirst {case (v: QueryMetrics, _: SlowLog) ⇒ v}
+    result.middlewareVals.collectFirst {case (v: QueryMetrics, _: SlowLog) => v}
 
   lazy val apolloTracing: Middleware[Any] = ApolloTracingExtension
 

@@ -62,7 +62,7 @@ class ApolloTracingExtensionSpec extends WordSpec with Matchers with FutureResul
 
   "ApolloTracingExtension" should {
     "Add tracing extension" in {
-      val vars = ScalaInput.scalaInput(Map("limit" → 4))
+      val vars = ScalaInput.scalaInput(Map("limit" -> 4))
 
       val result =
         Executor.execute(schema, mainQuery,
@@ -241,10 +241,10 @@ class ApolloTracingExtensionSpec extends WordSpec with Matchers with FutureResul
 
   def removeTime(res: JValue) =
     res.transformField {
-      case (name @ "startOffset", _) ⇒ name → JInt(0)
-      case (name @ "duration", _) ⇒ name → JInt(0)
-      case (name @ "startTime", _) ⇒ name → JString("DATE")
-      case (name @ "endTime", _) ⇒ name → JString("DATE")
-      case (name @ "resolvers", JArray(elems)) ⇒ name → JArray(elems.sortBy(e ⇒ (e \ "path").toString))
+      case (name @ "startOffset", _) => name -> JInt(0)
+      case (name @ "duration", _) => name -> JInt(0)
+      case (name @ "startTime", _) => name -> JString("DATE")
+      case (name @ "endTime", _) => name -> JString("DATE")
+      case (name @ "resolvers", JArray(elems)) => name -> JArray(elems.sortBy(e => (e \ "path").toString))
     }
 }

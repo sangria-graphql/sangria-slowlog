@@ -61,10 +61,10 @@ case class QueryMetrics(
     var inOperation = false
     var inFragment: Option[String] = None
 
-    AstVisitor.visitAstWithTypeInfo(schema, query) { typeInfo ⇒
+    AstVisitor.visitAstWithTypeInfo(schema, query) { typeInfo =>
       AstVisitor(
         onEnter = {
-          case op: ast.OperationDefinition if query.operations.size == 1 || op.name == operationName ⇒
+          case op: ast.OperationDefinition if query.operations.size == 1 || op.name == operationName =>
             inOperation = true
 
             val varNames = op.variables.map(_.name)
@@ -82,11 +82,11 @@ case class QueryMetrics(
 
             VisitorCommand.Transform(op.copy(comments = addComments(op.comments, execution ++ varComments)))
 
-          case _: ast.OperationDefinition ⇒
+          case _: ast.OperationDefinition =>
             inOperation = true
             VisitorCommand.Continue
 
-          case fd: ast.FragmentDefinition ⇒
+          case fd: ast.FragmentDefinition =>
             inFragment = Some(fd.name)
 
             val originPaths = fragmentPaths.getOrElse(fd.name, Vector.empty)
@@ -94,8 +94,8 @@ case class QueryMetrics(
             if (originPaths.nonEmpty) {
               val paths =
                 originPaths.map {
-                  case (_, hoPath) if hoPath.isEmpty ⇒ "* (query root)"
-                  case (_, hoPath) ⇒ "* " + hoPath.mkString(".")
+                  case (_, hoPath) if hoPath.isEmpty => "* (query root)"
+                  case (_, hoPath) => "* " + hoPath.mkString(".")
                 }
 
               val usages =
@@ -104,32 +104,32 @@ case class QueryMetrics(
               VisitorCommand.Transform(fd.copy(comments = addComments(fd.comments, usages)))
             } else VisitorCommand.Continue
 
-          case a: ast.Field if inOperation ⇒
-            val path = typeInfo.ancestors.collect { case f: ast.Field ⇒ f.outputName }.reverse.toVector
+          case a: ast.Field if inOperation =>
+            val path = typeInfo.ancestors.collect { case f: ast.Field => f.outputName }.reverse.toVector
             val varComments = variableComments(a, variables)
             val pathComments =
               for {
-                typeMetrics ← pathData.get(path)
+                typeMetrics <- pathData.get(path)
               } yield VisitorCommand.Transform(a.copy(comments =
                 addComments(a.comments, metricComments(typeInfo, typeMetrics) ++ varComments)))
 
             pathComments getOrElse VisitorCommand.Continue
 
-          case a: ast.Field if inFragment.isDefined ⇒
+          case a: ast.Field if inFragment.isDefined =>
             val fragmentName = inFragment.get
-            val path = typeInfo.ancestors.collect { case f: ast.Field ⇒ f.outputName }.reverse.toVector
+            val path = typeInfo.ancestors.collect { case f: ast.Field => f.outputName }.reverse.toVector
             val varComments = variableComments(a, variables)
             val originPaths = fragmentPaths.getOrElse(fragmentName, Vector.empty)
 
             val pathComments =
-              originPaths.flatMap { case (oPath, hoPath) ⇒
+              originPaths.flatMap { case (oPath, hoPath) =>
                 pathData.get(oPath ++ path) match {
-                  case Some(typeMetrics) ⇒
+                  case Some(typeMetrics) =>
                     metricComments(
                       typeInfo,
                       typeMetrics,
                       hoPath.mkString("", ".", if (hoPath.nonEmpty) "." else "") + path.mkString("", ".", " "))
-                  case None ⇒ Vector.empty
+                  case None => Vector.empty
                 }
               }
 
@@ -140,10 +140,10 @@ case class QueryMetrics(
               VisitorCommand.Continue
         },
         onLeave = {
-          case _: ast.OperationDefinition ⇒
+          case _: ast.OperationDefinition =>
             inOperation = false
             VisitorCommand.Continue
-          case _: ast.FragmentDefinition ⇒
+          case _: ast.FragmentDefinition =>
             inFragment = None
             VisitorCommand.Continue
         })
@@ -153,19 +153,19 @@ case class QueryMetrics(
   private def metricComments(typeInfo: TypeInfo, typeMetrics: TrieMap[String, FieldMetrics], prefix: String = "")(implicit renderer: MetricRenderer): Vector[ast.Comment] = {
     val rendered =
       for {
-        parentType ← typeInfo.previousParentType
-        fieldMetrics ← typeMetrics.get(parentType.name)
+        parentType <- typeInfo.previousParentType
+        fieldMetrics <- typeMetrics.get(parentType.name)
       } yield renderer.renderField(parentType.name, fieldMetrics, prefix)
 
     rendered match {
-      case Some(text) ⇒
+      case Some(text) =>
         toComments(text)
-      case None if typeMetrics.isEmpty || typeInfo.previousParentType.isDefined && typeInfo.previousParentType.get.isInstanceOf[ObjectType[_, _]] ⇒
+      case None if typeMetrics.isEmpty || typeInfo.previousParentType.isDefined && typeInfo.previousParentType.get.isInstanceOf[ObjectType[_, _]] =>
         Vector.empty[ast.Comment]
-      case None if typeMetrics.size == 1 ⇒
+      case None if typeMetrics.size == 1 =>
         toComments(renderer.renderField(typeMetrics.head._1, typeMetrics.head._2, prefix))
-      case None ⇒
-        typeMetrics.flatMap { case (typeName, metrics) ⇒
+      case None =>
+        typeMetrics.flatMap { case (typeName, metrics) =>
           toComments(renderer.renderField(typeName, metrics, prefix))
         }.toVector
     }
@@ -186,37 +186,37 @@ case class QueryMetrics(
     val fragmentPaths = mutable.Map[String, mutable.Set[(String, Vector[String])]]()
 
     def fragmentCollector(sourceName: String, typeInfo: TypeInfo) = AstVisitor {
-      case sp: FragmentSpread ⇒
+      case sp: FragmentSpread =>
         val dstSet = fragmentPaths.getOrElseUpdate(sp.name, mutable.Set[(String, Vector[String])]())
-        val path = typeInfo.ancestors.collect { case f: ast.Field ⇒ f.outputName }.reverse.toVector
+        val path = typeInfo.ancestors.collect { case f: ast.Field => f.outputName }.reverse.toVector
 
-        dstSet += sourceName → path
+        dstSet += sourceName -> path
 
         VisitorCommand.Continue
     }
 
     // collect of fragment relations
 
-    query.fragments.foreach { case (sourceName, fragment) ⇒
-      AstVisitor.visitAstWithTypeInfo(schema, fragment)(typeInfo ⇒ fragmentCollector(sourceName, typeInfo))
+    query.fragments.foreach { case (sourceName, fragment) =>
+      AstVisitor.visitAstWithTypeInfo(schema, fragment)(typeInfo => fragmentCollector(sourceName, typeInfo))
     }
 
-    query.operation(operationName).foreach(op ⇒
-      AstVisitor.visitAstWithTypeInfo(schema, op)(typeInfo ⇒ fragmentCollector("", typeInfo)))
+    query.operation(operationName).foreach(op =>
+      AstVisitor.visitAstWithTypeInfo(schema, op)(typeInfo => fragmentCollector("", typeInfo)))
 
     // expand all intermediate fragments
 
-    fragmentPaths.map { case (fragName, path) ⇒
+    fragmentPaths.map { case (fragName, path) =>
       def loop(name: String, p: Vector[String]): Vector[(Vector[String], Vector[String])] = {
         fragmentPaths.get(name) match {
-          case Some(b) ⇒
-            b.toVector.flatMap {case (n, cp) ⇒ loop(n, cp).map(r ⇒ (r._1 ++ p, r._2 ++ Vector(s"($name)") ++ p))}
-          case None ⇒
-            Vector(p → p)
+          case Some(b) =>
+            b.toVector.flatMap {case (n, cp) => loop(n, cp).map(r => (r._1 ++ p, r._2 ++ Vector(s"($name)") ++ p))}
+          case None =>
+            Vector(p -> p)
         }
       }
 
-      fragName → removeDuplicates(path.toVector.flatMap {case (n, cp) ⇒ loop(n, cp)})
+      fragName -> removeDuplicates(path.toVector.flatMap {case (n, cp) => loop(n, cp)})
     }
   }
 
@@ -224,7 +224,7 @@ case class QueryMetrics(
     val seen = mutable.Set[Vector[String]]()
     val builder = new VectorBuilder[(Vector[String], Vector[String])]
 
-    data.foreach { d ⇒
+    data.foreach { d =>
       if (!seen.contains(d._1)) {
         seen += d._1
         builder += d
@@ -238,7 +238,7 @@ case class QueryMetrics(
     val names = new mutable.HashSet[String]
 
     AstVisitor.visit(node, AstVisitor.simple {
-      case vv: ast.VariableValue ⇒ names += vv.name
+      case vv: ast.VariableValue => names += vv.name
     })
 
     names.toVector
@@ -249,7 +249,7 @@ case class QueryMetrics(
     if (existing.nonEmpty) (existing :+ ast.Comment("")) ++ added
     else added
 
-  def toComments(s: String): Vector[ast.Comment] = s.split("\n").map(c ⇒ ast.Comment(c.trim)).toVector
+  def toComments(s: String): Vector[ast.Comment] = s.split("\n").map(c => ast.Comment(c.trim)).toVector
 
   def extension(
     enrichedQuery: ast.Document,
@@ -259,13 +259,13 @@ case class QueryMetrics(
   )(implicit renderer: MetricRenderer): Extension[ast.Value] = {
     val sortedTypes =
       fieldData.toVector
-          .map {case (typeName, fields) ⇒ typeName → fields.map {case (fieldName, metrics) ⇒ metrics.snapshot.get98thPercentile()}.max}
+          .map {case (typeName, fields) => typeName -> fields.map {case (fieldName, metrics) => metrics.snapshot.get98thPercentile()}.max}
           .sortBy(_._2)(Ordering[Double].reverse)
 
     val typeMetrics =
-      sortedTypes.map { case (typeName, _) ⇒
+      sortedTypes.map { case (typeName, _) =>
         val fields =
-          fieldData(typeName).toVector.sortBy(_._2.snapshot.get98thPercentile())(Ordering[Double].reverse).map { case (fieldName, metrics) ⇒
+          fieldData(typeName).toVector.sortBy(_._2.snapshot.get98thPercentile())(Ordering[Double].reverse).map { case (fieldName, metrics) =>
             ast.ObjectField(fieldName, renderer.fieldMetrics(metrics))
           }
 

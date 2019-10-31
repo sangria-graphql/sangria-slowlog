@@ -22,7 +22,7 @@ object TestSchema {
     Field("barks", OptionType(BooleanType), resolve = _.value.barks)))
 
   val CatType = ObjectType("Cat", interfaces[Unit, Cat](NamedType), fields[Unit, Cat](
-    Field("name", OptionType(StringType), resolve = c ⇒ {
+    Field("name", OptionType(StringType), resolve = c => {
       Future {
         Thread.sleep((math.random * 10).toLong)
         c.value.name
@@ -38,9 +38,9 @@ object TestSchema {
   val PersonType = ObjectType("Person", interfaces[Unit, Person](NamedType), fields[Unit, Person](
     Field("pets", OptionType(ListType(OptionType(PetType))),
       arguments = LimitArg :: Nil,
-      resolve = c ⇒ c.withArgs(LimitArg)(limit ⇒ c.value.pets.map(_.take(limit)))),
+      resolve = c => c.withArgs(LimitArg)(limit => c.value.pets.map(_.take(limit)))),
     Field("favouritePet", PetType, resolve = _.value.pets.flatMap(_.headOption.flatMap(identity)).get),
-    Field("favouritePetList", ListType(PetType), resolve = _.value.pets.getOrElse(Nil).flatMap(x ⇒ x).toSeq),
+    Field("favouritePetList", ListType(PetType), resolve = _.value.pets.getOrElse(Nil).flatMap(x => x).toSeq),
     Field("favouritePetOpt", OptionType(PetType), resolve = _.value.pets.flatMap(_.headOption.flatMap(identity))),
     Field("friends", OptionType(ListType(OptionType(NamedType))), resolve = _.value.friends)))
 

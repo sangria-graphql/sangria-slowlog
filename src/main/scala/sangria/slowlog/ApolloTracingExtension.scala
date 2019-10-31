@@ -34,22 +34,22 @@ object ApolloTracingExtension extends Middleware[Any] with MiddlewareExtension[A
 
   def updateMetric(queryVal: QueryVal, fieldVal: FieldVal, ctx: Context[Any, _]): Unit =
     queryVal.fieldData.add(ObjectValue(
-      "path" → ListValue(ctx.path.path.map(queryAstResultMarshaller.scalarNode(_, "Any", Set.empty))),
-      "parentType" → StringValue(ctx.parentType.name),
-      "fieldName" → StringValue(ctx.field.name),
-      "returnType" → StringValue(SchemaRenderer.renderTypeName(ctx.field.fieldType)),
-      "startOffset" → BigIntValue(fieldVal - queryVal.startNanos),
-      "duration" → BigIntValue(System.nanoTime() - fieldVal)))
+      "path" -> ListValue(ctx.path.path.map(queryAstResultMarshaller.scalarNode(_, "Any", Set.empty))),
+      "parentType" -> StringValue(ctx.parentType.name),
+      "fieldName" -> StringValue(ctx.field.name),
+      "returnType" -> StringValue(SchemaRenderer.renderTypeName(ctx.field.fieldType)),
+      "startOffset" -> BigIntValue(fieldVal - queryVal.startNanos),
+      "duration" -> BigIntValue(System.nanoTime() - fieldVal)))
 
   def afterQueryExtensions(queryVal: QueryVal, context: MiddlewareQueryContext[Any, _, _]): Vector[Extension[_]] =
     Vector(Extension(ObjectValue(
-      "tracing" → ObjectValue(
-        "version" → IntValue(1),
-        "startTime" → StringValue(DateTimeFormatter.ISO_INSTANT.format(queryVal.startTime)),
-        "endTime" → StringValue(DateTimeFormatter.ISO_INSTANT.format(Instant.now())),
-        "duration" → BigIntValue(System.nanoTime() - queryVal.startNanos),
-        "execution" → ObjectValue(
-          "resolvers" → ListValue(queryVal.fieldData.asScala.toVector)))): Value))
+      "tracing" -> ObjectValue(
+        "version" -> IntValue(1),
+        "startTime" -> StringValue(DateTimeFormatter.ISO_INSTANT.format(queryVal.startTime)),
+        "endTime" -> StringValue(DateTimeFormatter.ISO_INSTANT.format(Instant.now())),
+        "duration" -> BigIntValue(System.nanoTime() - queryVal.startNanos),
+        "execution" -> ObjectValue(
+          "resolvers" -> ListValue(queryVal.fieldData.asScala.toVector)))): Value))
 
   case class QueryTrace(startTime: Instant, startNanos: Long, fieldData: ConcurrentLinkedQueue[Value])
 }

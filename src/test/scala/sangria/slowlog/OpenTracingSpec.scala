@@ -79,7 +79,7 @@ class OpenTracingSpec extends WordSpec with Matchers with FutureResultSupport wi
 
   "OpenTracing middleware" should {
     "Nest the spans correctly" in {
-      val vars = ScalaInput.scalaInput(Map("limit" → 4))
+      val vars = ScalaInput.scalaInput(Map("limit" -> 4))
 
       val spanBuilder = mockTracer.buildSpan("root")
       val span = spanBuilder.start()
@@ -102,26 +102,26 @@ class OpenTracingSpec extends WordSpec with Matchers with FutureResultSupport wi
       val typeNameSpan = finishedSpans.find(_.operationName == "__typename").get
       typeNameSpan.parentId shouldEqual querySpan.spanId
 
-      val bobSpan = finishedSpans.filter(s ⇒ s.operationName == "name" && s.parentId == querySpan.spanId)
+      val bobSpan = finishedSpans.filter(s => s.operationName == "name" && s.parentId == querySpan.spanId)
       bobSpan.size shouldBe 1
 
-      val petsSpan = finishedSpans.filter(s ⇒ s.operationName == "pets" && s.parentId == querySpan.spanId)
+      val petsSpan = finishedSpans.filter(s => s.operationName == "pets" && s.parentId == querySpan.spanId)
       petsSpan.size shouldBe 1
 
-      val petsNameSpan = finishedSpans.filter(s ⇒ s.operationName == "name" && s.parentId == petsSpan.head.spanId)
+      val petsNameSpan = finishedSpans.filter(s => s.operationName == "name" && s.parentId == petsSpan.head.spanId)
       petsNameSpan.size shouldBe 4
 
-      val petsMeowsSpan = finishedSpans.filter(s ⇒ s.operationName == "meows" && s.parentId == petsSpan.head.spanId)
+      val petsMeowsSpan = finishedSpans.filter(s => s.operationName == "meows" && s.parentId == petsSpan.head.spanId)
       petsMeowsSpan.size shouldBe 4
     }
   }
 
   def removeTime(res: JValue) =
     res.transformField {
-      case (name @ "startOffset", _) ⇒ name → JInt(0)
-      case (name @ "duration", _) ⇒ name → JInt(0)
-      case (name @ "startTime", _) ⇒ name → JString("DATE")
-      case (name @ "endTime", _) ⇒ name → JString("DATE")
-      case (name @ "resolvers", JArray(elems)) ⇒ name → JArray(elems.sortBy(e ⇒ (e \ "path").toString))
+      case (name @ "startOffset", _) => name -> JInt(0)
+      case (name @ "duration", _) => name -> JInt(0)
+      case (name @ "startTime", _) => name -> JString("DATE")
+      case (name @ "endTime", _) => name -> JString("DATE")
+      case (name @ "resolvers", JArray(elems)) => name -> JArray(elems.sortBy(e => (e \ "path").toString))
     }
 }
