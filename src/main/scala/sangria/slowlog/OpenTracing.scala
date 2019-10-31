@@ -19,14 +19,14 @@ class OpenTracing(parentSpan: Option[Span] = None, defaultOperationName: String 
 
     val spanBuilder =
       parentSpan match {
-        case Some(parent) ⇒ builder.asChildOf(parent)
-        case None ⇒ builder
+        case Some(parent) => builder.asChildOf(parent)
+        case None => builder
       }
 
     val span = spanBuilder.start()
     val scope = tracer.activateSpan(span)
 
-    TrieMap(Vector.empty → (span, scope))
+    TrieMap(Vector.empty -> (span, scope))
   }
 
   def afterQuery(queryVal: QueryVal, context: MiddlewareQueryContext[Any, _, _]) =
@@ -41,15 +41,15 @@ class OpenTracing(parentSpan: Option[Span] = None, defaultOperationName: String 
       .dropRight(1)
       .reverse
       .dropWhile {
-        case _: String ⇒ false
-        case _: Int ⇒ true
+        case _: String => false
+        case _: Int => true
       }
       .reverse
 
     val spanBuilder =
       queryVal
         .get(parentPath)
-        .map { case (parentSpan, _) ⇒
+        .map { case (parentSpan, _) =>
           tracer
             .buildSpan(ctx.field.name)
             .withTag("type", "graphql-field")

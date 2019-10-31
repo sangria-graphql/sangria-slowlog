@@ -66,14 +66,14 @@ class SlowLogSpec extends WordSpec with Matchers with FutureResultSupport with S
 
   "SlowLog" should {
     "enrich the query and separate operation" in {
-      val vars = ScalaInput.scalaInput(Map("limit" → 30))
+      val vars = ScalaInput.scalaInput(Map("limit" -> 30))
       var enrichedQuery: Option[String] = None
 
       Executor.execute(schema, mainQuery,
         root = bob,
         operationName = Some("Test"),
         variables = vars,
-        middleware = SlowLog.log((_, query) ⇒ enrichedQuery = Some(query), 0 seconds) :: Nil).await
+        middleware = SlowLog.log((_, query) => enrichedQuery = Some(query), 0 seconds) :: Nil).await
 
       removeTime(enrichedQuery.value, "ms") should equal (
         """# [Execution Metrics] duration: 0ms, validation: 0ms, reducers: 0ms
@@ -132,14 +132,14 @@ class SlowLogSpec extends WordSpec with Matchers with FutureResultSupport with S
     }
 
     "enrich only relevant parts of the query" in {
-      val vars = ScalaInput.scalaInput(Map("limit" → 30))
+      val vars = ScalaInput.scalaInput(Map("limit" -> 30))
       var enrichedQuery: Option[String] = None
 
       Executor.execute(schema, mainQuery,
         root = bob,
         operationName = Some("Test"),
         variables = vars,
-        middleware = SlowLog.log((_, query) ⇒ enrichedQuery = Some(query), 0 seconds, separateOp = false) :: Nil).await
+        middleware = SlowLog.log((_, query) => enrichedQuery = Some(query), 0 seconds, separateOp = false) :: Nil).await
       
       removeTime(enrichedQuery.value, "ms") should equal (
         """query Foo {
@@ -209,7 +209,7 @@ class SlowLogSpec extends WordSpec with Matchers with FutureResultSupport with S
     }
 
     "use different time units" in {
-      val vars = ScalaInput.scalaInput(Map("limit" → 10))
+      val vars = ScalaInput.scalaInput(Map("limit" -> 10))
       var enrichedQuery: Option[String] = None
 
       implicit val renderer = MetricRenderer.in(TimeUnit.SECONDS)
@@ -223,7 +223,7 @@ class SlowLogSpec extends WordSpec with Matchers with FutureResultSupport with S
         """,
         root = bob,
         variables = vars,
-        middleware = SlowLog.log((_, query) ⇒ enrichedQuery = Some(query), 0 seconds, separateOp = false) :: Nil).await
+        middleware = SlowLog.log((_, query) => enrichedQuery = Some(query), 0 seconds, separateOp = false) :: Nil).await
 
       removeTime(enrichedQuery.value, "s") should equal (
         """# [Execution Metrics] duration: 0s, validation: 0s, reducers: 0s
@@ -236,7 +236,7 @@ class SlowLogSpec extends WordSpec with Matchers with FutureResultSupport with S
     }
 
     "add extensions" in {
-      val vars = ScalaInput.scalaInput(Map("limit" → 3))
+      val vars = ScalaInput.scalaInput(Map("limit" -> 3))
 
       val res = Executor.execute(schema, mainQuery,
         root = bob,
@@ -289,12 +289,12 @@ class SlowLogSpec extends WordSpec with Matchers with FutureResultSupport with S
 
   def removeTime(json: JValue, unit: String, fieldUnit: String): JValue =
     json.transformField {
-      case (en @ "extensions", ev) ⇒
-        en → ev.transformField {
-          case (n @ "query", JString(s)) ⇒
-            n → JString(removeTime(s, unit))
-          case (n, JInt(_)) if n endsWith fieldUnit ⇒
-            n → JInt(0)
+      case (en @ "extensions", ev) =>
+        en -> ev.transformField {
+          case (n @ "query", JString(s)) =>
+            n -> JString(removeTime(s, unit))
+          case (n, JInt(_)) if n endsWith fieldUnit =>
+            n -> JInt(0)
         }
     }
 
