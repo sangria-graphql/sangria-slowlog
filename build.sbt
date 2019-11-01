@@ -1,7 +1,7 @@
 name := "sangria-slowlog"
 organization := "org.sangria-graphql"
 
-mimaPreviousArtifacts := Set("org.sangria-graphql" %% "sangria-slowlog" % "0.1.8")
+mimaPreviousArtifacts := Set("org.sangria-graphql" %% "sangria-slowlog" % "2.0.0-M1")
 
 description := "Sangria middleware to log slow GraphQL queries"
 homepage := Some(url("http://sangria-graphql.org"))

@@ -8,9 +8,18 @@
 
 SBT Configuration:
 
+- last stable release:
+
 ```scala
 libraryDependencies += "org.sangria-graphql" %% "sangria" % "1.4.2"
 libraryDependencies += "org.sangria-graphql" %% "sangria-slowlog" % "0.1.8"
+```
+
+- 2.0.0 milestone, available for scala 2.13:
+
+```scala
+libraryDependencies += "org.sangria-graphql" %% "sangria" % "2.0.0-M1"
+libraryDependencies += "org.sangria-graphql" %% "sangria-slowlog" % "2.0.0-M1"
 ```
 
 ## Usage
