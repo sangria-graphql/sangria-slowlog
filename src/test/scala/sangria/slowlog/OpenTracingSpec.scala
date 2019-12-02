@@ -1,7 +1,7 @@
 package sangria.slowlog
 
 import org.json4s.JsonAST._
-import org.scalatest.{BeforeAndAfter, Matchers, OptionValues, WordSpec}
+import org.scalatest.{BeforeAndAfter, OptionValues}
 import sangria.execution.Executor
 import sangria.macros._
 import sangria.marshalling.ScalaInput
@@ -15,6 +15,8 @@ import io.opentracing.contrib.concurrent.TracedExecutionContext
 import scala.concurrent.ExecutionContext.global
 import scala.language.postfixOps
 import scala.collection.JavaConverters._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
 final case class SimpleMockSpan(traceId: Long, spanId: Long, parentId: Long, operationName: String)
 object SimpleMockSpan {
@@ -22,7 +24,7 @@ object SimpleMockSpan {
     SimpleMockSpan(s.context().traceId(), s.context().spanId(), s.parentId(), s.operationName())
 }
 
-class OpenTracingSpec extends WordSpec with Matchers with FutureResultSupport with StringMatchers with OptionValues with BeforeAndAfter  {
+class OpenTracingSpec extends AnyWordSpec with Matchers with FutureResultSupport with StringMatchers with OptionValues with BeforeAndAfter  {
   import TestSchema._
 
 

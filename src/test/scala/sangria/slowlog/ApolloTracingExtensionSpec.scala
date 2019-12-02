@@ -3,7 +3,7 @@ package sangria.slowlog
 import org.json4s.JsonAST._
 
 import language.postfixOps
-import org.scalatest.{Matchers, OptionValues, WordSpec}
+import org.scalatest.OptionValues
 import sangria.execution.Executor
 import sangria.marshalling.ScalaInput
 import sangria.slowlog.util.{FutureResultSupport, StringMatchers}
@@ -12,8 +12,10 @@ import org.json4s.native.JsonMethods._
 import sangria.macros._
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class ApolloTracingExtensionSpec extends WordSpec with Matchers with FutureResultSupport with StringMatchers with OptionValues  {
+class ApolloTracingExtensionSpec extends AnyWordSpec with Matchers with FutureResultSupport with StringMatchers with OptionValues  {
   import TestSchema._
   
   val mainQuery =
