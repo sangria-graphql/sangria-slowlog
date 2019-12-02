@@ -6,7 +6,7 @@ import org.json4s.JsonAST.{JInt, JString, JValue}
 
 import language.postfixOps
 import sangria.slowlog.util.FutureResultSupport
-import org.scalatest.{Matchers, OptionValues, WordSpec}
+import org.scalatest.OptionValues
 import sangria.execution._
 import sangria.macros._
 import sangria.marshalling.ScalaInput
@@ -16,8 +16,10 @@ import scala.concurrent.duration._
 import sangria.marshalling.json4s.native._
 import org.json4s.native.JsonMethods._
 import sangria.slowlog.util._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class SlowLogSpec extends WordSpec with Matchers with FutureResultSupport with StringMatchers with OptionValues {
+class SlowLogSpec extends AnyWordSpec with Matchers with FutureResultSupport with StringMatchers with OptionValues {
   import TestSchema._
 
   val mainQuery =
