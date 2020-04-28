@@ -13,7 +13,7 @@ crossScalaVersions := Seq("2.12.10", scalaVersion.value)
 scalacOptions ++= Seq("-deprecation", "-feature")
 
 libraryDependencies ++= Seq(
-  "org.sangria-graphql" %% "sangria" % "2.0.0-RC1",
+  "org.sangria-graphql" %% "sangria" % "2.0.0-RC2",
   "io.dropwizard.metrics" % "metrics-core" % "4.1.6",
   "org.slf4j" % "slf4j-api" % "1.7.30",
   "io.opentracing.contrib" %% "opentracing-scala-concurrent" % "0.0.6",
