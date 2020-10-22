@@ -165,7 +165,7 @@ You would need and implicit instance of a `Tracer` available in the scope.
 In order to access field's `span` in the resolve function, you can use middleware attachment `ScopeAttachment`:
 
 ```scala
-Fied(..., resolve = ctx ⇒ {
+Fied(..., resolve = ctx => {
   val parentSpan: Option[Span] = ctx.attachment[SpanAttachment].map(_.span)
   
   // ...
