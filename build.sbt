@@ -1,39 +1,35 @@
 name := "sangria-slowlog"
 organization := "org.sangria-graphql"
-version := "0.1.9-SNAPSHOT"
+
+mimaPreviousArtifacts := Set("org.sangria-graphql" %% "sangria-slowlog" % "2.0.0-M1")
 
 description := "Sangria middleware to log slow GraphQL queries"
 homepage := Some(url("http://sangria-graphql.org"))
-licenses := Seq("Apache License, ASL Version 2.0" → url("http://www.apache.org/licenses/LICENSE-2.0"))
+licenses := Seq("Apache License, ASL Version 2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0"))
 
-scalaVersion := "2.12.6"
-crossScalaVersions := Seq("2.11.11", "2.12.6")
+scalaVersion := "2.13.0"
+crossScalaVersions := Seq("2.12.10", scalaVersion.value)
 
 scalacOptions ++= Seq("-deprecation", "-feature")
 
-scalacOptions ++= {
-  if (scalaVersion.value startsWith "2.12")
-    Seq.empty
-  else
-    Seq("-target:jvm-1.7")
-}
-
 libraryDependencies ++= Seq(
-  "org.sangria-graphql" %% "sangria" % "1.4.2",
-  "io.dropwizard.metrics" % "metrics-core" % "4.0.3",
-  "org.slf4j" % "slf4j-api" % "1.7.25",
-  "io.opentracing.contrib" %% "opentracing-scala-concurrent" % "0.0.4",
-  "io.opentracing" % "opentracing-mock" % "0.31.0",
-  "org.scalatest" %% "scalatest" % "3.0.5" % Test,
-  "org.sangria-graphql" %% "sangria-json4s-native" % "1.0.0" % Test,
-  "org.slf4j" % "slf4j-simple" % "1.7.25" % Test
+  "org.sangria-graphql" %% "sangria" % "2.0.1",
+  "io.dropwizard.metrics" % "metrics-core" % "4.1.13",
+  "org.slf4j" % "slf4j-api" % "1.7.30",
+  "io.opentracing.contrib" %% "opentracing-scala-concurrent" % "0.0.6",
+  "io.opentracing" % "opentracing-mock" % "0.33.0" % Test,
+  "org.scalatest" %% "scalatest" % "3.1.4" % Test,
+  "org.sangria-graphql" %% "sangria-json4s-native" % "1.0.1" % Test,
+  "org.slf4j" % "slf4j-simple" % "1.7.30" % Test
 )
 
 // Publishing
 
+releaseCrossBuild := true
+releasePublishArtifactsAction := PgpKeys.publishSigned.value
 publishMavenStyle := true
 publishArtifact in Test := false
-pomIncludeRepository := (_ ⇒ false)
+pomIncludeRepository := (_ => false)
 publishTo := Some(
   if (version.value.trim.endsWith("SNAPSHOT"))
     "snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
@@ -48,6 +44,6 @@ scmInfo := Some(ScmInfo(
 
 // nice *magenta* prompt!
 
-shellPrompt in ThisBuild := { state ⇒
+shellPrompt in ThisBuild := { state =>
   scala.Console.MAGENTA + Project.extract(state).currentRef.project + "> " + scala.Console.RESET
 }

@@ -1,7 +1,7 @@
 package sangria.slowlog
 
 import org.json4s.JsonAST._
-import org.scalatest.{BeforeAndAfter, Matchers, OptionValues, WordSpec}
+import org.scalatest.{BeforeAndAfter, OptionValues}
 import sangria.execution.Executor
 import sangria.macros._
 import sangria.marshalling.ScalaInput
@@ -11,9 +11,12 @@ import io.opentracing.mock.{MockSpan, MockTracer}
 import io.opentracing.mock.MockTracer.Propagator
 import io.opentracing.util.ThreadLocalScopeManager
 import io.opentracing.contrib.concurrent.TracedExecutionContext
+
 import scala.concurrent.ExecutionContext.global
 import scala.language.postfixOps
 import scala.collection.JavaConverters._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
 final case class SimpleMockSpan(traceId: Long, spanId: Long, parentId: Long, operationName: String)
 object SimpleMockSpan {
@@ -21,7 +24,7 @@ object SimpleMockSpan {
     SimpleMockSpan(s.context().traceId(), s.context().spanId(), s.parentId(), s.operationName())
 }
 
-class OpenTracingSpec extends WordSpec with Matchers with FutureResultSupport with StringMatchers with OptionValues with BeforeAndAfter  {
+class OpenTracingSpec extends AnyWordSpec with Matchers with FutureResultSupport with StringMatchers with OptionValues with BeforeAndAfter  {
   import TestSchema._
 
 
@@ -78,9 +81,11 @@ class OpenTracingSpec extends WordSpec with Matchers with FutureResultSupport wi
 
   "OpenTracing middleware" should {
     "Nest the spans correctly" in {
-      val vars = ScalaInput.scalaInput(Map("limit" → 4))
+      val vars = ScalaInput.scalaInput(Map("limit" -> 4))
 
-      val scope = mockTracer.buildSpan("root").startActive(false)
+      val spanBuilder = mockTracer.buildSpan("root")
+      val span = spanBuilder.start()
+      val scope = mockTracer.activateSpan(span)
 
       Executor.execute(schema, mainQuery,
         root = bob,
@@ -88,7 +93,7 @@ class OpenTracingSpec extends WordSpec with Matchers with FutureResultSupport wi
         variables = vars,
         middleware = SlowLog.openTracing() :: Nil).await
 
-      scope.span.finish()
+      mockTracer.activeSpan().finish()
 
       val finishedSpans = mockTracer.finishedSpans.asScala.map(SimpleMockSpan.apply).toSet
       finishedSpans.forall(_.traceId == 1) shouldBe true
@@ -99,26 +104,26 @@ class OpenTracingSpec extends WordSpec with Matchers with FutureResultSupport wi
       val typeNameSpan = finishedSpans.find(_.operationName == "__typename").get
       typeNameSpan.parentId shouldEqual querySpan.spanId
 
-      val bobSpan = finishedSpans.filter(s ⇒ s.operationName == "name" && s.parentId == querySpan.spanId)
+      val bobSpan = finishedSpans.filter(s => s.operationName == "name" && s.parentId == querySpan.spanId)
       bobSpan.size shouldBe 1
 
-      val petsSpan = finishedSpans.filter(s ⇒ s.operationName == "pets" && s.parentId == querySpan.spanId)
+      val petsSpan = finishedSpans.filter(s => s.operationName == "pets" && s.parentId == querySpan.spanId)
       petsSpan.size shouldBe 1
 
-      val petsNameSpan = finishedSpans.filter(s ⇒ s.operationName == "name" && s.parentId == petsSpan.head.spanId)
+      val petsNameSpan = finishedSpans.filter(s => s.operationName == "name" && s.parentId == petsSpan.head.spanId)
       petsNameSpan.size shouldBe 4
 
-      val petsMeowsSpan = finishedSpans.filter(s ⇒ s.operationName == "meows" && s.parentId == petsSpan.head.spanId)
+      val petsMeowsSpan = finishedSpans.filter(s => s.operationName == "meows" && s.parentId == petsSpan.head.spanId)
       petsMeowsSpan.size shouldBe 4
     }
   }
 
   def removeTime(res: JValue) =
     res.transformField {
-      case (name @ "startOffset", _) ⇒ name → JInt(0)
-      case (name @ "duration", _) ⇒ name → JInt(0)
-      case (name @ "startTime", _) ⇒ name → JString("DATE")
-      case (name @ "endTime", _) ⇒ name → JString("DATE")
-      case (name @ "resolvers", JArray(elems)) ⇒ name → JArray(elems.sortBy(e ⇒ (e \ "path").toString))
+      case (name @ "startOffset", _) => name -> JInt(0)
+      case (name @ "duration", _) => name -> JInt(0)
+      case (name @ "startTime", _) => name -> JString("DATE")
+      case (name @ "endTime", _) => name -> JString("DATE")
+      case (name @ "resolvers", JArray(elems)) => name -> JArray(elems.sortBy(e => (e \ "path").toString))
     }
 }

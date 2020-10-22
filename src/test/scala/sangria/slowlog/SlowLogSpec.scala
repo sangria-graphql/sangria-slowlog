@@ -6,7 +6,7 @@ import org.json4s.JsonAST.{JInt, JString, JValue}
 
 import language.postfixOps
 import sangria.slowlog.util.FutureResultSupport
-import org.scalatest.{Matchers, OptionValues, WordSpec}
+import org.scalatest.OptionValues
 import sangria.execution._
 import sangria.macros._
 import sangria.marshalling.ScalaInput
@@ -16,8 +16,10 @@ import scala.concurrent.duration._
 import sangria.marshalling.json4s.native._
 import org.json4s.native.JsonMethods._
 import sangria.slowlog.util._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class SlowLogSpec extends WordSpec with Matchers with FutureResultSupport with StringMatchers with OptionValues {
+class SlowLogSpec extends AnyWordSpec with Matchers with FutureResultSupport with StringMatchers with OptionValues {
   import TestSchema._
 
   val mainQuery =
@@ -66,14 +68,14 @@ class SlowLogSpec extends WordSpec with Matchers with FutureResultSupport with S
 
   "SlowLog" should {
     "enrich the query and separate operation" in {
-      val vars = ScalaInput.scalaInput(Map("limit" → 30))
+      val vars = ScalaInput.scalaInput(Map("limit" -> 30))
       var enrichedQuery: Option[String] = None
 
       Executor.execute(schema, mainQuery,
         root = bob,
         operationName = Some("Test"),
         variables = vars,
-        middleware = SlowLog.log((_, query) ⇒ enrichedQuery = Some(query), 0 seconds) :: Nil).await
+        middleware = SlowLog.log((_, query) => enrichedQuery = Some(query), 0 seconds) :: Nil).await
 
       removeTime(enrichedQuery.value, "ms") should equal (
         """# [Execution Metrics] duration: 0ms, validation: 0ms, reducers: 0ms
@@ -132,14 +134,14 @@ class SlowLogSpec extends WordSpec with Matchers with FutureResultSupport with S
     }
 
     "enrich only relevant parts of the query" in {
-      val vars = ScalaInput.scalaInput(Map("limit" → 30))
+      val vars = ScalaInput.scalaInput(Map("limit" -> 30))
       var enrichedQuery: Option[String] = None
 
       Executor.execute(schema, mainQuery,
         root = bob,
         operationName = Some("Test"),
         variables = vars,
-        middleware = SlowLog.log((_, query) ⇒ enrichedQuery = Some(query), 0 seconds, separateOp = false) :: Nil).await
+        middleware = SlowLog.log((_, query) => enrichedQuery = Some(query), 0 seconds, separateOp = false) :: Nil).await
       
       removeTime(enrichedQuery.value, "ms") should equal (
         """query Foo {
@@ -209,7 +211,7 @@ class SlowLogSpec extends WordSpec with Matchers with FutureResultSupport with S
     }
 
     "use different time units" in {
-      val vars = ScalaInput.scalaInput(Map("limit" → 10))
+      val vars = ScalaInput.scalaInput(Map("limit" -> 10))
       var enrichedQuery: Option[String] = None
 
       implicit val renderer = MetricRenderer.in(TimeUnit.SECONDS)
@@ -223,7 +225,7 @@ class SlowLogSpec extends WordSpec with Matchers with FutureResultSupport with S
         """,
         root = bob,
         variables = vars,
-        middleware = SlowLog.log((_, query) ⇒ enrichedQuery = Some(query), 0 seconds, separateOp = false) :: Nil).await
+        middleware = SlowLog.log((_, query) => enrichedQuery = Some(query), 0 seconds, separateOp = false) :: Nil).await
 
       removeTime(enrichedQuery.value, "s") should equal (
         """# [Execution Metrics] duration: 0s, validation: 0s, reducers: 0s
@@ -236,7 +238,7 @@ class SlowLogSpec extends WordSpec with Matchers with FutureResultSupport with S
     }
 
     "add extensions" in {
-      val vars = ScalaInput.scalaInput(Map("limit" → 3))
+      val vars = ScalaInput.scalaInput(Map("limit" -> 3))
 
       val res = Executor.execute(schema, mainQuery,
         root = bob,
@@ -289,12 +291,12 @@ class SlowLogSpec extends WordSpec with Matchers with FutureResultSupport with S
 
   def removeTime(json: JValue, unit: String, fieldUnit: String): JValue =
     json.transformField {
-      case (en @ "extensions", ev) ⇒
-        en → ev.transformField {
-          case (n @ "query", JString(s)) ⇒
-            n → JString(removeTime(s, unit))
-          case (n, JInt(_)) if n endsWith fieldUnit ⇒
-            n → JInt(0)
+      case (en @ "extensions", ev) =>
+        en -> ev.transformField {
+          case (n @ "query", JString(s)) =>
+            n -> JString(removeTime(s, unit))
+          case (n, JInt(_)) if n endsWith fieldUnit =>
+            n -> JInt(0)
         }
     }
 
