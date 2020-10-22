@@ -166,7 +166,7 @@ In order to access field's `span` in the resolve function, you can use middlewar
 
 ```scala
 Fied(..., resolve = ctx => {
-  val parentSpan: Option[Span] = ctx.attachment[ScopeAttachment].map(_.span)
+  val parentSpan: Option[Span] = ctx.attachment[SpanAttachment].map(_.span)
   
   // ...
 })
