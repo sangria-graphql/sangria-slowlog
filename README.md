@@ -1,6 +1,6 @@
 **sangria-slowlog** - [Sangria](http://sangria-graphql.org/) middleware to log slow queries.
 
-[![Build Status](https://travis-ci.org/sangria-graphql-org/sangria-slowlog.svg?branch=master)](https://travis-ci.org/sangria-graphql-org/sangria-slowlog)
+[![Build Status](https://travis-ci.org/sangria-graphql/sangria-slowlog.svg?branch=master)](https://travis-ci.org/sangria-graphql/sangria-slowlog)
 [![Coverage Status](http://coveralls.io/repos/sangria-graphql/sangria-slowlog/badge.svg?branch=master&service=github)](http://coveralls.io/github/sangria-graphql/sangria-slowlog?branch=master)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.sangria-graphql/sangria-slowlog_2.11/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.sangria-graphql/sangria-slowlog_2.11)
 [![License](http://img.shields.io/:license-Apache%202-brightgreen.svg)](http://www.apache.org/licenses/LICENSE-2.0.txt)
@@ -166,7 +166,7 @@ In order to access field's `span` in the resolve function, you can use middlewar
 
 ```scala
 Fied(..., resolve = ctx => {
-  val parentSpan: Option[Span] = ctx.attachment[ScopeAttachment].map(_.span)
+  val parentSpan: Option[Span] = ctx.attachment[SpanAttachment].map(_.span)
   
   // ...
 })
