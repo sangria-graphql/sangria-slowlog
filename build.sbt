@@ -7,18 +7,21 @@ description := "Sangria middleware to log slow GraphQL queries"
 homepage := Some(url("http://sangria-graphql.org"))
 licenses := Seq("Apache License, ASL Version 2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0"))
 
-scalaVersion := "2.13.0"
-crossScalaVersions := Seq("2.12.10", scalaVersion.value)
+scalaVersion := "2.13.3"
+crossScalaVersions := Seq("2.12.12", scalaVersion.value)
+
+scalacOptions += "-target:jvm-1.8"
+javacOptions ++= Seq("-source", "8", "-target", "8")
 
 scalacOptions ++= Seq("-deprecation", "-feature")
 
 libraryDependencies ++= Seq(
-  "org.sangria-graphql" %% "sangria" % "2.0.0-RC1",
-  "io.dropwizard.metrics" % "metrics-core" % "4.1.6",
+  "org.sangria-graphql" %% "sangria" % "2.0.1",
+  "io.dropwizard.metrics" % "metrics-core" % "4.1.16",
   "org.slf4j" % "slf4j-api" % "1.7.30",
   "io.opentracing.contrib" %% "opentracing-scala-concurrent" % "0.0.6",
   "io.opentracing" % "opentracing-mock" % "0.33.0" % Test,
-  "org.scalatest" %% "scalatest" % "3.1.0" % Test,
+  "org.scalatest" %% "scalatest" % "3.2.2" % Test,
   "org.sangria-graphql" %% "sangria-json4s-native" % "1.0.1" % Test,
   "org.slf4j" % "slf4j-simple" % "1.7.30" % Test
 )
@@ -39,8 +42,8 @@ startYear := Some(2017)
 organizationHomepage := Some(url("https://github.com/sangria-graphql"))
 developers := Developer("OlegIlyenko", "Oleg Ilyenko", "", url("https://github.com/OlegIlyenko")) :: Nil
 scmInfo := Some(ScmInfo(
-  browseUrl = url("https://github.com/sangria-graphql-org/sangria-circe.git"),
-  connection = "scm:git:git@github.com:sangria-graphql-org/sangria-circe.git"))
+  browseUrl = url("https://github.com/sangria-graphql/sangria-circe.git"),
+  connection = "scm:git:git@github.com:sangria-graphql/sangria-circe.git"))
 
 // nice *magenta* prompt!
 
