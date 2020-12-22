@@ -24,9 +24,14 @@ object SimpleMockSpan {
     SimpleMockSpan(s.context().traceId(), s.context().spanId(), s.parentId(), s.operationName())
 }
 
-class OpenTracingSpec extends AnyWordSpec with Matchers with FutureResultSupport with StringMatchers with OptionValues with BeforeAndAfter  {
+class OpenTracingSpec
+    extends AnyWordSpec
+    with Matchers
+    with FutureResultSupport
+    with StringMatchers
+    with OptionValues
+    with BeforeAndAfter {
   import TestSchema._
-
 
   implicit val mockTracer = new MockTracer(new ThreadLocalScopeManager, Propagator.TEXT_MAP)
   implicit val ec = new TracedExecutionContext(global, mockTracer, false)
@@ -87,11 +92,15 @@ class OpenTracingSpec extends AnyWordSpec with Matchers with FutureResultSupport
       val span = spanBuilder.start()
       val scope = mockTracer.activateSpan(span)
 
-      Executor.execute(schema, mainQuery,
-        root = bob,
-        operationName = Some("Test"),
-        variables = vars,
-        middleware = SlowLog.openTracing() :: Nil).await
+      Executor
+        .execute(
+          schema,
+          mainQuery,
+          root = bob,
+          operationName = Some("Test"),
+          variables = vars,
+          middleware = SlowLog.openTracing() :: Nil)
+        .await
 
       mockTracer.activeSpan().finish()
 
@@ -104,16 +113,20 @@ class OpenTracingSpec extends AnyWordSpec with Matchers with FutureResultSupport
       val typeNameSpan = finishedSpans.find(_.operationName == "__typename").get
       typeNameSpan.parentId shouldEqual querySpan.spanId
 
-      val bobSpan = finishedSpans.filter(s => s.operationName == "name" && s.parentId == querySpan.spanId)
+      val bobSpan =
+        finishedSpans.filter(s => s.operationName == "name" && s.parentId == querySpan.spanId)
       bobSpan.size shouldBe 1
 
-      val petsSpan = finishedSpans.filter(s => s.operationName == "pets" && s.parentId == querySpan.spanId)
+      val petsSpan =
+        finishedSpans.filter(s => s.operationName == "pets" && s.parentId == querySpan.spanId)
       petsSpan.size shouldBe 1
 
-      val petsNameSpan = finishedSpans.filter(s => s.operationName == "name" && s.parentId == petsSpan.head.spanId)
+      val petsNameSpan =
+        finishedSpans.filter(s => s.operationName == "name" && s.parentId == petsSpan.head.spanId)
       petsNameSpan.size shouldBe 4
 
-      val petsMeowsSpan = finishedSpans.filter(s => s.operationName == "meows" && s.parentId == petsSpan.head.spanId)
+      val petsMeowsSpan =
+        finishedSpans.filter(s => s.operationName == "meows" && s.parentId == petsSpan.head.spanId)
       petsMeowsSpan.size shouldBe 4
     }
   }
@@ -124,6 +137,7 @@ class OpenTracingSpec extends AnyWordSpec with Matchers with FutureResultSupport
       case (name @ "duration", _) => name -> JInt(0)
       case (name @ "startTime", _) => name -> JString("DATE")
       case (name @ "endTime", _) => name -> JString("DATE")
-      case (name @ "resolvers", JArray(elems)) => name -> JArray(elems.sortBy(e => (e \ "path").toString))
+      case (name @ "resolvers", JArray(elems)) =>
+        name -> JArray(elems.sortBy(e => (e \ "path").toString))
     }
 }

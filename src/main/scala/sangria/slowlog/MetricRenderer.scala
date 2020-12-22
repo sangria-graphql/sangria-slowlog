@@ -8,7 +8,7 @@ import sangria.ast
 
 trait MetricRenderer {
   def renderField(typeName: String, metrics: FieldMetrics, prefix: String): String
-  def renderVariables[In : InputUnmarshaller](variables: In, names: Vector[String]): String
+  def renderVariables[In: InputUnmarshaller](variables: In, names: Vector[String]): String
   def renderExecution(durationNanos: Long, validationNanos: Long, queryReducerNanos: Long): String
   def renderDuration(durationNanos: Long): String
   def durationField(name: String, value: Long): ast.ObjectField
@@ -18,17 +18,18 @@ trait MetricRenderer {
 
 object MetricRenderer {
   implicit val default = new DefaultMetricRenderer(TimeUnit.MILLISECONDS)
-  
+
   def in(unit: TimeUnit) = new DefaultMetricRenderer(unit)
 }
 
 class DefaultMetricRenderer(val unit: TimeUnit) extends MetricRenderer {
-  def renderVariables[In : InputUnmarshaller](variables: In, names: Vector[String]) = {
+  def renderVariables[In: InputUnmarshaller](variables: In, names: Vector[String]) = {
     val iu = implicitly[InputUnmarshaller[In]]
-    val renderedVars = names.flatMap(name => iu.getRootMapValue(variables, name).map(v => s"  $$$name = ${iu.render(v)}"))
+    val renderedVars = names.flatMap(name =>
+      iu.getRootMapValue(variables, name).map(v => s"  $$$name = ${iu.render(v)}"))
 
     if (renderedVars.nonEmpty)
-      renderedVars mkString "\n"
+      renderedVars.mkString("\n")
     else
       ""
   }
@@ -41,11 +42,13 @@ class DefaultMetricRenderer(val unit: TimeUnit) extends MetricRenderer {
 
     val countStr = s"[$prefix$typeName] count: $success${if (failure > 0) "/" + failure else ""}"
 
-    (countStr +: renderHistogram(count, histogram, unit).map{case (n, v) => s"$n: $v"}).mkString(", ")
+    (countStr +: renderHistogram(count, histogram, unit).map { case (n, v) => s"$n: $v" })
+      .mkString(", ")
   }
 
   def renderExecution(durationNanos: Long, validationNanos: Long, queryReducerNanos: Long) =
-    s"[Execution Metrics] duration: ${renderDuration(durationNanos)}, validation: ${renderDuration(validationNanos)}, reducers: ${renderDuration(queryReducerNanos)}"
+    s"[Execution Metrics] duration: ${renderDuration(durationNanos)}, validation: ${renderDuration(
+      validationNanos)}, reducers: ${renderDuration(queryReducerNanos)}"
 
   def renderHistogram(count: Long, snap: Snapshot, unit: TimeUnit): Vector[(String, String)] =
     if (count == 1)
@@ -57,7 +60,8 @@ class DefaultMetricRenderer(val unit: TimeUnit) extends MetricRenderer {
         "mean" -> renderDuration(snap.getMean.toLong),
         "p75" -> renderDuration(snap.get75thPercentile.toLong),
         "p95" -> renderDuration(snap.get95thPercentile.toLong),
-        "p99" -> renderDuration(snap.get99thPercentile.toLong))
+        "p99" -> renderDuration(snap.get99thPercentile.toLong)
+      )
 
   def renderDuration(durationNanos: Long) =
     if (unit == TimeUnit.NANOSECONDS) durationNanos + renderTimeUnit(unit)
@@ -65,7 +69,6 @@ class DefaultMetricRenderer(val unit: TimeUnit) extends MetricRenderer {
 
   def renderLogMessage(durationNanos: Long, enrichedQuery: String) =
     s"Slow GraphQL query [${renderDuration(durationNanos)}].\n\n$enrichedQuery"
-
 
   def fieldMetrics(metrics: FieldMetrics) = {
     val durationMetrics =
@@ -75,7 +78,8 @@ class DefaultMetricRenderer(val unit: TimeUnit) extends MetricRenderer {
         durationField("mean", metrics.snapshot.getMean.toLong),
         durationField("p75", metrics.snapshot.get75thPercentile.toLong),
         durationField("p95", metrics.snapshot.get95thPercentile.toLong),
-        durationField("p99", metrics.snapshot.get99thPercentile.toLong))
+        durationField("p99", metrics.snapshot.get99thPercentile.toLong)
+      )
 
     val failed =
       if (metrics.failure.getCount > 0)
@@ -84,7 +88,9 @@ class DefaultMetricRenderer(val unit: TimeUnit) extends MetricRenderer {
         Vector.empty
 
     ast.ObjectValue(
-      ast.ObjectField("count", ast.BigIntValue(metrics.success.getCount)) +: (failed ++ durationMetrics))
+      ast.ObjectField(
+        "count",
+        ast.BigIntValue(metrics.success.getCount)) +: (failed ++ durationMetrics))
   }
 
   def durationField(name: String, value: Long): ast.ObjectField = {
@@ -95,8 +101,7 @@ class DefaultMetricRenderer(val unit: TimeUnit) extends MetricRenderer {
     ast.ObjectField(name + timeUnitSuffix, ast.BigIntValue(correctValue))
   }
 
-
-  def renderTimeUnit(unit: TimeUnit) = unit match  {
+  def renderTimeUnit(unit: TimeUnit) = unit match {
     case TimeUnit.DAYS => "d"
     case TimeUnit.HOURS => "h"
     case TimeUnit.MICROSECONDS => "μs"
@@ -106,7 +111,7 @@ class DefaultMetricRenderer(val unit: TimeUnit) extends MetricRenderer {
     case TimeUnit.SECONDS => "s"
   }
 
-  lazy val timeUnitSuffix = unit match  {
+  lazy val timeUnitSuffix = unit match {
     case TimeUnit.DAYS => "Day"
     case TimeUnit.HOURS => "Hour"
     case TimeUnit.MICROSECONDS => "Micros"

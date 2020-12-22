@@ -6,8 +6,11 @@ import sangria.schema.Context
 
 import scala.collection.concurrent.TrieMap
 
-class OpenTracing(parentSpan: Option[Span] = None, defaultOperationName: String = "UNNAMED")(implicit tracer: Tracer)
-  extends Middleware[Any] with MiddlewareAfterField[Any] with MiddlewareErrorField[Any] {
+class OpenTracing(parentSpan: Option[Span] = None, defaultOperationName: String = "UNNAMED")(
+    implicit tracer: Tracer)
+    extends Middleware[Any]
+    with MiddlewareAfterField[Any]
+    with MiddlewareErrorField[Any] {
 
   type QueryVal = TrieMap[Vector[Any], (Span, Scope)]
   type FieldVal = Unit
@@ -35,7 +38,10 @@ class OpenTracing(parentSpan: Option[Span] = None, defaultOperationName: String 
       scope.close()
     }
 
-  def beforeField(queryVal: QueryVal, mctx: MiddlewareQueryContext[Any, _, _], ctx: Context[Any, _]) = {
+  def beforeField(
+      queryVal: QueryVal,
+      mctx: MiddlewareQueryContext[Any, _, _],
+      ctx: Context[Any, _]) = {
     val path = ctx.path.path
     val parentPath = path
       .dropRight(1)
@@ -61,11 +67,12 @@ class OpenTracing(parentSpan: Option[Span] = None, defaultOperationName: String 
             .withTag("type", "graphql-field")
         }
 
-
     val span = spanBuilder.start()
     val scope = tracer.activateSpan(span)
 
-    BeforeFieldResult(queryVal.update(ctx.path.path, (span, scope)), attachment = Some(ScopeAttachment(span, scope)))
+    BeforeFieldResult(
+      queryVal.update(ctx.path.path, (span, scope)),
+      attachment = Some(ScopeAttachment(span, scope)))
   }
 
   def afterField(

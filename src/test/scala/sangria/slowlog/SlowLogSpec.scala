@@ -19,7 +19,12 @@ import sangria.slowlog.util._
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
-class SlowLogSpec extends AnyWordSpec with Matchers with FutureResultSupport with StringMatchers with OptionValues {
+class SlowLogSpec
+    extends AnyWordSpec
+    with Matchers
+    with FutureResultSupport
+    with StringMatchers
+    with OptionValues {
   import TestSchema._
 
   val mainQuery =
@@ -71,13 +76,17 @@ class SlowLogSpec extends AnyWordSpec with Matchers with FutureResultSupport wit
       val vars = ScalaInput.scalaInput(Map("limit" -> 30))
       var enrichedQuery: Option[String] = None
 
-      Executor.execute(schema, mainQuery,
-        root = bob,
-        operationName = Some("Test"),
-        variables = vars,
-        middleware = SlowLog.log((_, query) => enrichedQuery = Some(query), 0 seconds) :: Nil).await
+      Executor
+        .execute(
+          schema,
+          mainQuery,
+          root = bob,
+          operationName = Some("Test"),
+          variables = vars,
+          middleware = SlowLog.log((_, query) => enrichedQuery = Some(query), 0 seconds) :: Nil)
+        .await
 
-      removeTime(enrichedQuery.value, "ms") should equal (
+      removeTime(enrichedQuery.value, "ms") should equal(
         """# [Execution Metrics] duration: 0ms, validation: 0ms, reducers: 0ms
           |#
           |# $limit = 30
@@ -130,21 +139,26 @@ class SlowLogSpec extends AnyWordSpec with Matchers with FutureResultSupport wit
           |    # [name Person] count: 1, time: 0ms
           |    name
           |  }
-          |}""".stripMargin) (after being strippedOfCarriageReturns)
+          |}""".stripMargin)(after.being(strippedOfCarriageReturns))
     }
 
     "enrich only relevant parts of the query" in {
       val vars = ScalaInput.scalaInput(Map("limit" -> 30))
       var enrichedQuery: Option[String] = None
 
-      Executor.execute(schema, mainQuery,
-        root = bob,
-        operationName = Some("Test"),
-        variables = vars,
-        middleware = SlowLog.log((_, query) => enrichedQuery = Some(query), 0 seconds, separateOp = false) :: Nil).await
-      
-      removeTime(enrichedQuery.value, "ms") should equal (
-        """query Foo {
+      Executor
+        .execute(
+          schema,
+          mainQuery,
+          root = bob,
+          operationName = Some("Test"),
+          variables = vars,
+          middleware = SlowLog
+            .log((_, query) => enrichedQuery = Some(query), 0 seconds, separateOp = false) :: Nil
+        )
+        .await
+
+      removeTime(enrichedQuery.value, "ms") should equal("""query Foo {
           |  friends {
           |    ...Name
           |    ...Name2
@@ -207,7 +221,7 @@ class SlowLogSpec extends AnyWordSpec with Matchers with FutureResultSupport wit
           |
           |fragment Name2 on Named {
           |  name
-          |}""".stripMargin) (after being strippedOfCarriageReturns)
+          |}""".stripMargin)(after.being(strippedOfCarriageReturns))
     }
 
     "use different time units" in {
@@ -216,38 +230,46 @@ class SlowLogSpec extends AnyWordSpec with Matchers with FutureResultSupport wit
 
       implicit val renderer = MetricRenderer.in(TimeUnit.SECONDS)
 
-      Executor.execute(schema,
-        gql"""
+      Executor
+        .execute(
+          schema,
+          gql"""
           {
             # test comment
             name
           }
         """,
-        root = bob,
-        variables = vars,
-        middleware = SlowLog.log((_, query) => enrichedQuery = Some(query), 0 seconds, separateOp = false) :: Nil).await
+          root = bob,
+          variables = vars,
+          middleware = SlowLog
+            .log((_, query) => enrichedQuery = Some(query), 0 seconds, separateOp = false) :: Nil
+        )
+        .await
 
-      removeTime(enrichedQuery.value, "s") should equal (
+      removeTime(enrichedQuery.value, "s") should equal(
         """# [Execution Metrics] duration: 0s, validation: 0s, reducers: 0s
           |{
           |  # test comment
           |  #
           |  # [Person] count: 1, time: 0s
           |  name
-          |}""".stripMargin) (after being strippedOfCarriageReturns)
+          |}""".stripMargin)(after.being(strippedOfCarriageReturns))
     }
 
     "add extensions" in {
       val vars = ScalaInput.scalaInput(Map("limit" -> 3))
 
-      val res = Executor.execute(schema, mainQuery,
-        root = bob,
-        operationName = Some("Test"),
-        variables = vars,
-        middleware = SlowLog.extension :: Nil).await
+      val res = Executor
+        .execute(
+          schema,
+          mainQuery,
+          root = bob,
+          operationName = Some("Test"),
+          variables = vars,
+          middleware = SlowLog.extension :: Nil)
+        .await
 
-      removeTime(res, "ms", "Ms") should be (parse(
-        """{
+      removeTime(res, "ms", "Ms") should be(parse("""{
           |  "data": {
           |    "__typename": "Person",
           |    "name": "Bob",
@@ -290,14 +312,13 @@ class SlowLogSpec extends AnyWordSpec with Matchers with FutureResultSupport wit
   }
 
   def removeTime(json: JValue, unit: String, fieldUnit: String): JValue =
-    json.transformField {
-      case (en @ "extensions", ev) =>
-        en -> ev.transformField {
-          case (n @ "query", JString(s)) =>
-            n -> JString(removeTime(s, unit))
-          case (n, JInt(_)) if n endsWith fieldUnit =>
-            n -> JInt(0)
-        }
+    json.transformField { case (en @ "extensions", ev) =>
+      en -> ev.transformField {
+        case (n @ "query", JString(s)) =>
+          n -> JString(removeTime(s, unit))
+        case (n, JInt(_)) if n.endsWith(fieldUnit) =>
+          n -> JInt(0)
+      }
     }
 
   def removeTime(query: String, unit: String): String =
