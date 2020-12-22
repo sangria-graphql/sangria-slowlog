@@ -15,9 +15,14 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
-class ApolloTracingExtensionSpec extends AnyWordSpec with Matchers with FutureResultSupport with StringMatchers with OptionValues  {
+class ApolloTracingExtensionSpec
+    extends AnyWordSpec
+    with Matchers
+    with FutureResultSupport
+    with StringMatchers
+    with OptionValues {
   import TestSchema._
-  
+
   val mainQuery =
     gql"""
       query Foo {
@@ -67,14 +72,17 @@ class ApolloTracingExtensionSpec extends AnyWordSpec with Matchers with FutureRe
       val vars = ScalaInput.scalaInput(Map("limit" -> 4))
 
       val result =
-        Executor.execute(schema, mainQuery,
-          root = bob,
-          operationName = Some("Test"),
-          variables = vars,
-          middleware = SlowLog.apolloTracing :: Nil).await
+        Executor
+          .execute(
+            schema,
+            mainQuery,
+            root = bob,
+            operationName = Some("Test"),
+            variables = vars,
+            middleware = SlowLog.apolloTracing :: Nil)
+          .await
 
-      removeTime(result) should be (parse(
-        """
+      removeTime(result) should be(parse("""
         {
           "data": {
              "__typename": "Person",
@@ -247,6 +255,7 @@ class ApolloTracingExtensionSpec extends AnyWordSpec with Matchers with FutureRe
       case (name @ "duration", _) => name -> JInt(0)
       case (name @ "startTime", _) => name -> JString("DATE")
       case (name @ "endTime", _) => name -> JString("DATE")
-      case (name @ "resolvers", JArray(elems)) => name -> JArray(elems.sortBy(e => (e \ "path").toString))
+      case (name @ "resolvers", JArray(elems)) =>
+        name -> JArray(elems.sortBy(e => (e \ "path").toString))
     }
 }

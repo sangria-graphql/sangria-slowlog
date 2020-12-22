@@ -12,7 +12,11 @@ import sangria.renderer.SchemaRenderer
 
 import scala.collection.JavaConverters._
 
-object ApolloTracingExtension extends Middleware[Any] with MiddlewareExtension[Any] with MiddlewareAfterField[Any] with MiddlewareErrorField[Any] {
+object ApolloTracingExtension
+    extends Middleware[Any]
+    with MiddlewareExtension[Any]
+    with MiddlewareAfterField[Any]
+    with MiddlewareErrorField[Any] {
   type QueryVal = QueryTrace
   type FieldVal = Long
 
@@ -21,35 +25,57 @@ object ApolloTracingExtension extends Middleware[Any] with MiddlewareExtension[A
 
   def afterQuery(queryVal: QueryVal, context: MiddlewareQueryContext[Any, _, _]) = ()
 
-  def beforeField(queryVal: QueryVal, mctx: MiddlewareQueryContext[Any, _, _], ctx: Context[Any, _]) =
+  def beforeField(
+      queryVal: QueryVal,
+      mctx: MiddlewareQueryContext[Any, _, _],
+      ctx: Context[Any, _]) =
     continue(System.nanoTime())
 
-  def afterField(queryVal: QueryVal, fieldVal: FieldVal, value: Any, mctx: MiddlewareQueryContext[Any, _, _], ctx: Context[Any, _]) = {
+  def afterField(
+      queryVal: QueryVal,
+      fieldVal: FieldVal,
+      value: Any,
+      mctx: MiddlewareQueryContext[Any, _, _],
+      ctx: Context[Any, _]) = {
     updateMetric(queryVal, fieldVal, ctx)
     None
   }
 
-  def fieldError(queryVal: QueryVal, fieldVal: FieldVal, error: Throwable, mctx: MiddlewareQueryContext[Any, _, _], ctx: Context[Any, _]) =
+  def fieldError(
+      queryVal: QueryVal,
+      fieldVal: FieldVal,
+      error: Throwable,
+      mctx: MiddlewareQueryContext[Any, _, _],
+      ctx: Context[Any, _]) =
     updateMetric(queryVal, fieldVal, ctx)
 
   def updateMetric(queryVal: QueryVal, fieldVal: FieldVal, ctx: Context[Any, _]): Unit =
-    queryVal.fieldData.add(ObjectValue(
-      "path" -> ListValue(ctx.path.path.map(queryAstResultMarshaller.scalarNode(_, "Any", Set.empty))),
-      "parentType" -> StringValue(ctx.parentType.name),
-      "fieldName" -> StringValue(ctx.field.name),
-      "returnType" -> StringValue(SchemaRenderer.renderTypeName(ctx.field.fieldType)),
-      "startOffset" -> BigIntValue(fieldVal - queryVal.startNanos),
-      "duration" -> BigIntValue(System.nanoTime() - fieldVal)))
+    queryVal.fieldData.add(
+      ObjectValue(
+        "path" -> ListValue(
+          ctx.path.path.map(queryAstResultMarshaller.scalarNode(_, "Any", Set.empty))),
+        "parentType" -> StringValue(ctx.parentType.name),
+        "fieldName" -> StringValue(ctx.field.name),
+        "returnType" -> StringValue(SchemaRenderer.renderTypeName(ctx.field.fieldType)),
+        "startOffset" -> BigIntValue(fieldVal - queryVal.startNanos),
+        "duration" -> BigIntValue(System.nanoTime() - fieldVal)
+      ))
 
-  def afterQueryExtensions(queryVal: QueryVal, context: MiddlewareQueryContext[Any, _, _]): Vector[Extension[_]] =
-    Vector(Extension(ObjectValue(
-      "tracing" -> ObjectValue(
-        "version" -> IntValue(1),
-        "startTime" -> StringValue(DateTimeFormatter.ISO_INSTANT.format(queryVal.startTime)),
-        "endTime" -> StringValue(DateTimeFormatter.ISO_INSTANT.format(Instant.now())),
-        "duration" -> BigIntValue(System.nanoTime() - queryVal.startNanos),
-        "execution" -> ObjectValue(
-          "resolvers" -> ListValue(queryVal.fieldData.asScala.toVector)))): Value))
+  def afterQueryExtensions(
+      queryVal: QueryVal,
+      context: MiddlewareQueryContext[Any, _, _]): Vector[Extension[_]] =
+    Vector(
+      Extension(
+        ObjectValue("tracing" -> ObjectValue(
+          "version" -> IntValue(1),
+          "startTime" -> StringValue(DateTimeFormatter.ISO_INSTANT.format(queryVal.startTime)),
+          "endTime" -> StringValue(DateTimeFormatter.ISO_INSTANT.format(Instant.now())),
+          "duration" -> BigIntValue(System.nanoTime() - queryVal.startNanos),
+          "execution" -> ObjectValue("resolvers" -> ListValue(queryVal.fieldData.asScala.toVector))
+        )): Value))
 
-  case class QueryTrace(startTime: Instant, startNanos: Long, fieldData: ConcurrentLinkedQueue[Value])
+  case class QueryTrace(
+      startTime: Instant,
+      startNanos: Long,
+      fieldData: ConcurrentLinkedQueue[Value])
 }
