@@ -25,15 +25,15 @@ class SlowLog(
 
   private val thresholdNanos = threshold.toNanos
 
-  def beforeQuery(context: MiddlewareQueryContext[Any, _, _]) =
+  def beforeQuery(context: MiddlewareQueryContext[Any, _, _]): QueryMetrics =
     QueryMetrics(TrieMap.empty, TrieMap.empty, System.nanoTime(), addExtensions)
 
-  def afterQuery(queryVal: QueryVal, context: MiddlewareQueryContext[Any, _, _]) = ()
+  def afterQuery(queryVal: QueryVal, context: MiddlewareQueryContext[Any, _, _]): Unit = ()
 
   def afterQueryExtensions(
       queryVal: QueryMetrics,
       context: MiddlewareQueryContext[Any, _, _]): Vector[Extension[_]] = {
-    implicit val iu = context.inputUnmarshaller.asInstanceOf[InputUnmarshaller[Any]]
+    implicit val iu: InputUnmarshaller[Any] = context.inputUnmarshaller.asInstanceOf[InputUnmarshaller[Any]]
     val vars = context.variables.asInstanceOf[Any]
     val durationNanos = System.nanoTime() - queryVal.startNanos
 
@@ -64,7 +64,7 @@ class SlowLog(
   def beforeField(
       queryVal: QueryVal,
       mctx: MiddlewareQueryContext[Any, _, _],
-      ctx: Context[Any, _]) =
+      ctx: Context[Any, _]): BeforeFieldResult[Any, Long] =
     continue(System.nanoTime())
 
   def afterField(
@@ -72,7 +72,7 @@ class SlowLog(
       fieldVal: FieldVal,
       value: Any,
       mctx: MiddlewareQueryContext[Any, _, _],
-      ctx: Context[Any, _]) = {
+      ctx: Context[Any, _]): Option[Any] = {
     updateMetric(queryVal, fieldVal, ctx, success = true)
 
     None
@@ -83,7 +83,7 @@ class SlowLog(
       fieldVal: FieldVal,
       error: Throwable,
       mctx: MiddlewareQueryContext[Any, _, _],
-      ctx: Context[Any, _]) =
+      ctx: Context[Any, _]): Unit =
     updateMetric(queryVal, fieldVal, ctx, success = false)
 
   def updateMetric(

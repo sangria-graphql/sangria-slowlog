@@ -5,13 +5,13 @@ import sangria.marshalling.ResultMarshallerForType
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, Future}
 import scala.language.postfixOps
 
 trait FutureResultSupport {
   implicit class FutureResult[T](f: Future[T]) {
-    def await = Await.result(f, 10 seconds)
-    def await(duration: Duration) = Await.result(f, duration)
+    def await: T = Await.result(f, 10 seconds)
+    def await(duration: Duration): T = Await.result(f, duration)
 
     def awaitAndRecoverQueryAnalysis(implicit m: ResultMarshallerForType[T]): T =
       Await.result(recoverQueryAnalysis, 10 seconds)
@@ -21,17 +21,17 @@ trait FutureResultSupport {
         analysisError.resolveError(m.marshaller).asInstanceOf[T]
     }
 
-    def awaitAndRecoverQueryAnalysisScala(implicit ev: T =:= Any) =
+    def awaitAndRecoverQueryAnalysisScala(implicit ev: T =:= Any): Any =
       Await.result(recoverQueryAnalysisScala, 10 seconds)
 
-    def recoverQueryAnalysisScala(implicit ev: T =:= Any) = f.recover {
+    def recoverQueryAnalysisScala(implicit ev: T =:= Any): Future[Any] = f.recover {
       case analysisError: ErrorWithResolver => analysisError.resolveError
     }
   }
 
   object sync {
-    val executionContext = ExecutionContext.fromExecutor(new java.util.concurrent.Executor {
-      def execute(command: Runnable) = command.run()
+    val executionContext: ExecutionContextExecutor = ExecutionContext.fromExecutor(new java.util.concurrent.Executor {
+      def execute(command: Runnable): Unit = command.run()
     })
   }
 }

@@ -18,11 +18,11 @@ object TestSchema {
       friends: Option[List[Option[Named]]])
       extends Named
 
-  val NamedType = InterfaceType(
+  val NamedType: InterfaceType[Unit, Named] = InterfaceType(
     "Named",
     fields[Unit, Named](Field("name", OptionType(StringType), resolve = _.value.name)))
 
-  val DogType = ObjectType(
+  val DogType: ObjectType[Unit, Dog] = ObjectType(
     "Dog",
     interfaces[Unit, Dog](NamedType),
     fields[Unit, Dog](
@@ -30,7 +30,7 @@ object TestSchema {
       Field("barks", OptionType(BooleanType), resolve = _.value.barks))
   )
 
-  val CatType = ObjectType(
+  val CatType: ObjectType[Unit, Cat] = ObjectType(
     "Cat",
     interfaces[Unit, Cat](NamedType),
     fields[Unit, Cat](
@@ -48,11 +48,11 @@ object TestSchema {
     )
   )
 
-  val PetType = UnionType[Unit]("Pet", types = DogType :: CatType :: Nil)
+  val PetType: UnionType[Unit] = UnionType[Unit]("Pet", types = DogType :: CatType :: Nil)
 
-  val LimitArg = Argument("limit", OptionInputType(IntType), 10)
+  val LimitArg: Argument[Int] = Argument("limit", OptionInputType(IntType), 10)
 
-  val PersonType = ObjectType(
+  val PersonType: ObjectType[Unit, Person] = ObjectType(
     "Person",
     interfaces[Unit, Person](NamedType),
     fields[Unit, Person](
@@ -77,15 +77,15 @@ object TestSchema {
     )
   )
 
-  val TestSchema = Schema(PersonType)
+  val TestSchema: Schema[Unit, Person] = Schema(PersonType)
 
-  val garfield = Cat(Some("Garfield"), Some(false))
-  val odie = Dog(Some("Odie"), Some(true))
-  val liz = Person(Some("Liz"), None, None)
-  val bob = Person(
+  val garfield: Cat = Cat(Some("Garfield"), Some(false))
+  val odie: Dog = Dog(Some("Odie"), Some(true))
+  val liz: Person = Person(Some("Liz"), None, None)
+  val bob: Person = Person(
     Some("Bob"),
     Some(Iterator.continually(Some(garfield)).take(20).toList :+ Some(odie)),
     Some(List(Some(liz), Some(odie))))
 
-  val schema = Schema(PersonType)
+  val schema: Schema[Unit, Person] = Schema(PersonType)
 }

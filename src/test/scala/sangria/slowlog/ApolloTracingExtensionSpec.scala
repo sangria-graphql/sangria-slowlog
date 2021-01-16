@@ -1,5 +1,6 @@
 package sangria.slowlog
 
+import org.json4s
 import org.json4s.JsonAST._
 
 import language.postfixOps
@@ -249,7 +250,7 @@ class ApolloTracingExtensionSpec
     }
   }
 
-  def removeTime(res: JValue) =
+  def removeTime(res: JValue): json4s.JValue =
     res.transformField {
       case (name @ "startOffset", _) => name -> JInt(0)
       case (name @ "duration", _) => name -> JInt(0)

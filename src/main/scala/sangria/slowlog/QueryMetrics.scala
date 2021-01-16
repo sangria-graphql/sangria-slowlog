@@ -2,7 +2,7 @@ package sangria.slowlog
 
 import com.codahale.metrics.{Counter, ExponentiallyDecayingReservoir, Histogram}
 import sangria.ast
-import sangria.ast.{AstVisitor, FragmentSpread}
+import sangria.ast.{AstVisitor, Comment, FragmentSpread}
 import sangria.execution.Extension
 import sangria.marshalling.InputUnmarshaller
 import sangria.schema.{ObjectType, Schema}
@@ -27,7 +27,7 @@ case class QueryMetrics(
       fieldName: String,
       success: Boolean,
       startNanos: Long,
-      endNanos: Long) = {
+      endNanos: Long): Unit = {
     val duration = endNanos - startNanos
     val forPath = pathData.getOrElseUpdate(path, TrieMap.empty)
     val m = forPath.getOrElseUpdate(
@@ -262,7 +262,7 @@ case class QueryMetrics(
     builder.result()
   }
 
-  def findVariableNames(node: ast.AstNode) = {
+  def findVariableNames(node: ast.AstNode): Vector[String] = {
     val names = new mutable.HashSet[String]
 
     AstVisitor.visit(
@@ -274,7 +274,7 @@ case class QueryMetrics(
     names.toVector
   }
 
-  def addComments(existing: Vector[ast.Comment], added: Vector[ast.Comment]) =
+  def addComments(existing: Vector[ast.Comment], added: Vector[ast.Comment]): Vector[Comment] =
     if (existing.nonEmpty) (existing :+ ast.Comment("")) ++ added
     else added
 

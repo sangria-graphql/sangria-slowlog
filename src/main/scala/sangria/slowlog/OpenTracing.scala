@@ -15,7 +15,7 @@ class OpenTracing(parentSpan: Option[Span] = None, defaultOperationName: String 
   type QueryVal = TrieMap[Vector[Any], (Span, Scope)]
   type FieldVal = Unit
 
-  def beforeQuery(context: MiddlewareQueryContext[Any, _, _]) = {
+  def beforeQuery(context: MiddlewareQueryContext[Any, _, _]): TrieMap[Vector[Any], (Span, Scope)] = {
     val builder = tracer
       .buildSpan(context.operationName.getOrElse(defaultOperationName))
       .withTag("type", "graphql-query")
@@ -32,7 +32,7 @@ class OpenTracing(parentSpan: Option[Span] = None, defaultOperationName: String 
     TrieMap(Vector.empty -> (span, scope))
   }
 
-  def afterQuery(queryVal: QueryVal, context: MiddlewareQueryContext[Any, _, _]) =
+  def afterQuery(queryVal: QueryVal, context: MiddlewareQueryContext[Any, _, _]): Unit =
     queryVal.get(Vector.empty).foreach { case (span, scope) =>
       span.finish()
       scope.close()
@@ -41,7 +41,7 @@ class OpenTracing(parentSpan: Option[Span] = None, defaultOperationName: String 
   def beforeField(
       queryVal: QueryVal,
       mctx: MiddlewareQueryContext[Any, _, _],
-      ctx: Context[Any, _]) = {
+      ctx: Context[Any, _]): BeforeFieldResult[Any, Unit] = {
     val path = ctx.path.path
     val parentPath = path
       .dropRight(1)
@@ -80,7 +80,7 @@ class OpenTracing(parentSpan: Option[Span] = None, defaultOperationName: String 
       fieldVal: FieldVal,
       value: Any,
       mctx: MiddlewareQueryContext[Any, _, _],
-      ctx: Context[Any, _]) = {
+      ctx: Context[Any, _]): Option[Any] = {
     queryVal.get(ctx.path.path).foreach { case (span, scope) =>
       span.finish()
       scope.close()
@@ -93,7 +93,7 @@ class OpenTracing(parentSpan: Option[Span] = None, defaultOperationName: String 
       fieldVal: FieldVal,
       error: Throwable,
       mctx: MiddlewareQueryContext[Any, _, _],
-      ctx: Context[Any, _]) =
+      ctx: Context[Any, _]): Unit =
     queryVal.get(ctx.path.path).foreach { case (span, scope) =>
       span.finish()
       scope.close()

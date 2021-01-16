@@ -1,10 +1,10 @@
 package sangria.slowlog
 
 import java.util.concurrent.TimeUnit
-
 import com.codahale.metrics.Snapshot
 import sangria.marshalling.InputUnmarshaller
 import sangria.ast
+import sangria.ast.ObjectValue
 
 trait MetricRenderer {
   def renderField(typeName: String, metrics: FieldMetrics, prefix: String): String
@@ -17,13 +17,13 @@ trait MetricRenderer {
 }
 
 object MetricRenderer {
-  implicit val default = new DefaultMetricRenderer(TimeUnit.MILLISECONDS)
+  implicit val default: DefaultMetricRenderer = new DefaultMetricRenderer(TimeUnit.MILLISECONDS)
 
   def in(unit: TimeUnit) = new DefaultMetricRenderer(unit)
 }
 
 class DefaultMetricRenderer(val unit: TimeUnit) extends MetricRenderer {
-  def renderVariables[In: InputUnmarshaller](variables: In, names: Vector[String]) = {
+  def renderVariables[In: InputUnmarshaller](variables: In, names: Vector[String]): String = {
     val iu = implicitly[InputUnmarshaller[In]]
     val renderedVars = names.flatMap(name =>
       iu.getRootMapValue(variables, name).map(v => s"  $$$name = ${iu.render(v)}"))
@@ -34,7 +34,7 @@ class DefaultMetricRenderer(val unit: TimeUnit) extends MetricRenderer {
       ""
   }
 
-  def renderField(typeName: String, metrics: FieldMetrics, prefix: String) = {
+  def renderField(typeName: String, metrics: FieldMetrics, prefix: String): String = {
     val success = metrics.success.getCount
     val failure = metrics.failure.getCount
     val histogram = metrics.snapshot
@@ -63,14 +63,14 @@ class DefaultMetricRenderer(val unit: TimeUnit) extends MetricRenderer {
         "p99" -> renderDuration(snap.get99thPercentile.toLong)
       )
 
-  def renderDuration(durationNanos: Long) =
+  def renderDuration(durationNanos: Long): String =
     if (unit == TimeUnit.NANOSECONDS) durationNanos + renderTimeUnit(unit)
     else unit.convert(durationNanos, TimeUnit.NANOSECONDS) + renderTimeUnit(unit)
 
   def renderLogMessage(durationNanos: Long, enrichedQuery: String) =
     s"Slow GraphQL query [${renderDuration(durationNanos)}].\n\n$enrichedQuery"
 
-  def fieldMetrics(metrics: FieldMetrics) = {
+  def fieldMetrics(metrics: FieldMetrics): ObjectValue = {
     val durationMetrics =
       Vector(
         durationField("min", metrics.snapshot.getMin),
@@ -101,7 +101,7 @@ class DefaultMetricRenderer(val unit: TimeUnit) extends MetricRenderer {
     ast.ObjectField(name + timeUnitSuffix, ast.BigIntValue(correctValue))
   }
 
-  def renderTimeUnit(unit: TimeUnit) = unit match {
+  def renderTimeUnit(unit: TimeUnit): String = unit match {
     case TimeUnit.DAYS => "d"
     case TimeUnit.HOURS => "h"
     case TimeUnit.MICROSECONDS => "μs"
@@ -111,7 +111,7 @@ class DefaultMetricRenderer(val unit: TimeUnit) extends MetricRenderer {
     case TimeUnit.SECONDS => "s"
   }
 
-  lazy val timeUnitSuffix = unit match {
+  lazy val timeUnitSuffix: String = unit match {
     case TimeUnit.DAYS => "Day"
     case TimeUnit.HOURS => "Hour"
     case TimeUnit.MICROSECONDS => "Micros"
