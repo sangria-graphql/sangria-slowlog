@@ -64,8 +64,8 @@ class DefaultMetricRenderer(val unit: TimeUnit) extends MetricRenderer {
       )
 
   def renderDuration(durationNanos: Long) =
-    if (unit == TimeUnit.NANOSECONDS) durationNanos + renderTimeUnit(unit)
-    else unit.convert(durationNanos, TimeUnit.NANOSECONDS) + renderTimeUnit(unit)
+    if (unit == TimeUnit.NANOSECONDS) s"$durationNanos${renderTimeUnit(unit)}"
+    else s"${unit.convert(durationNanos, TimeUnit.NANOSECONDS)}${renderTimeUnit(unit)}"
 
   def renderLogMessage(durationNanos: Long, enrichedQuery: String) =
     s"Slow GraphQL query [${renderDuration(durationNanos)}].\n\n$enrichedQuery"

@@ -14,7 +14,7 @@ import io.opentracing.contrib.concurrent.TracedExecutionContext
 
 import scala.concurrent.ExecutionContext.global
 import scala.language.postfixOps
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 

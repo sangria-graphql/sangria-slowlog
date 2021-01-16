@@ -10,7 +10,7 @@ import sangria.schema.Context
 import sangria.marshalling.queryAst._
 import sangria.renderer.SchemaRenderer
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 object ApolloTracingExtension
     extends Middleware[Any]
