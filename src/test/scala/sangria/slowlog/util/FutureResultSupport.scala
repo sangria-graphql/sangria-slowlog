@@ -30,8 +30,7 @@ trait FutureResultSupport {
   }
 
   object sync {
-    val executionContext: ExecutionContextExecutor = ExecutionContext.fromExecutor(new java.util.concurrent.Executor {
-      def execute(command: Runnable): Unit = command.run()
-    })
+    val executionContext: ExecutionContextExecutor =
+      ExecutionContext.fromExecutor((command: Runnable) => command.run())
   }
 }

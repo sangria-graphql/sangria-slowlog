@@ -34,7 +34,8 @@ class OpenTracingSpec
     with BeforeAndAfter {
   import TestSchema._
 
-  implicit val mockTracer: MockTracer = new MockTracer(new ThreadLocalScopeManager, Propagator.TEXT_MAP)
+  implicit val mockTracer: MockTracer =
+    new MockTracer(new ThreadLocalScopeManager, Propagator.TEXT_MAP)
   implicit val ec: TracedExecutionContext = new TracedExecutionContext(global, mockTracer, false)
 
   before {

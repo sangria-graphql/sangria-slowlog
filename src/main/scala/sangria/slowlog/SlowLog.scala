@@ -33,7 +33,8 @@ class SlowLog(
   def afterQueryExtensions(
       queryVal: QueryMetrics,
       context: MiddlewareQueryContext[Any, _, _]): Vector[Extension[_]] = {
-    implicit val iu: InputUnmarshaller[Any] = context.inputUnmarshaller.asInstanceOf[InputUnmarshaller[Any]]
+    implicit val iu: InputUnmarshaller[Any] =
+      context.inputUnmarshaller.asInstanceOf[InputUnmarshaller[Any]]
     val vars = context.variables.asInstanceOf[Any]
     val durationNanos = System.nanoTime() - queryVal.startNanos
 
@@ -72,7 +73,7 @@ class SlowLog(
       fieldVal: FieldVal,
       value: Any,
       mctx: MiddlewareQueryContext[Any, _, _],
-      ctx: Context[Any, _]): Option[Any] = {
+      ctx: Context[Any, _]): None.type = {
     updateMetric(queryVal, fieldVal, ctx, success = true)
 
     None

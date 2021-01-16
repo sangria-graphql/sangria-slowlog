@@ -61,18 +61,15 @@ object TestSchema {
         OptionType(ListType(OptionType(PetType))),
         arguments = LimitArg :: Nil,
         resolve = c => c.withArgs(LimitArg)(limit => c.value.pets.map(_.take(limit)))),
-      Field(
-        "favouritePet",
-        PetType,
-        resolve = _.value.pets.flatMap(_.headOption.flatMap(identity)).get),
+      Field("favouritePet", PetType, resolve = _.value.pets.flatMap(_.headOption.flatten).get),
       Field(
         "favouritePetList",
         ListType(PetType),
-        resolve = _.value.pets.getOrElse(Nil).flatMap(x => x).toSeq),
+        resolve = _.value.pets.getOrElse(Nil).flatten.toSeq),
       Field(
         "favouritePetOpt",
         OptionType(PetType),
-        resolve = _.value.pets.flatMap(_.headOption.flatMap(identity))),
+        resolve = _.value.pets.flatMap(_.headOption.flatten)),
       Field("friends", OptionType(ListType(OptionType(NamedType))), resolve = _.value.friends)
     )
   )
