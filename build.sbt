@@ -8,7 +8,7 @@ homepage := Some(url("http://sangria-graphql.org"))
 licenses := Seq("Apache License, ASL Version 2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0"))
 
 // sbt-github-actions needs configuration in `ThisBuild`
-ThisBuild / crossScalaVersions := Seq("2.12.13", "2.13.4")
+ThisBuild / crossScalaVersions := Seq("2.12.13", "2.13.5")
 ThisBuild / scalaVersion := crossScalaVersions.value.last
 ThisBuild / githubWorkflowPublishTargetBranches := List()
 ThisBuild / githubWorkflowBuildPreamble ++= List(
