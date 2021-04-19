@@ -7,3 +7,5 @@ classes
 
 # files
 *.iml
+.metals/
+.vscode/
