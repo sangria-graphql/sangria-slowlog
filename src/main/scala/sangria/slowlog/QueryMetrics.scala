@@ -100,7 +100,7 @@ case class QueryMetrics(
 
             if (originPaths.nonEmpty) {
               val paths =
-                originPaths.map {
+                originPaths.iterator.map {
                   case (_, hoPath) if hoPath.isEmpty => "* (query root)"
                   case (_, hoPath) => "* " + hoPath.mkString(".")
                 }
@@ -113,7 +113,9 @@ case class QueryMetrics(
 
           case a: ast.Field if inOperation =>
             val path =
-              typeInfo.ancestors.collect { case f: ast.Field => f.outputName }.reverse.toVector
+              typeInfo.ancestors.reverseIterator.collect { case f: ast.Field =>
+                f.outputName
+              }.toVector
             val varComments = variableComments(a, variables)
             val pathComments =
               for {
@@ -127,7 +129,9 @@ case class QueryMetrics(
           case a: ast.Field if inFragment.isDefined =>
             val fragmentName = inFragment.get
             val path =
-              typeInfo.ancestors.collect { case f: ast.Field => f.outputName }.reverse.toVector
+              typeInfo.ancestors.reverseIterator.collect { case f: ast.Field =>
+                f.outputName
+              }.toVector
             val varComments = variableComments(a, variables)
             val originPaths = fragmentPaths.getOrElse(fragmentName, Vector.empty)
 
@@ -168,9 +172,10 @@ case class QueryMetrics(
       typeInfo: TypeInfo,
       typeMetrics: TrieMap[String, FieldMetrics],
       prefix: String = "")(implicit renderer: MetricRenderer): Vector[ast.Comment] = {
+    val previousParentType = typeInfo.previousParentType
     val rendered =
       for {
-        parentType <- typeInfo.previousParentType
+        parentType <- previousParentType
         fieldMetrics <- typeMetrics.get(parentType.name)
       } yield renderer.renderField(parentType.name, fieldMetrics, prefix)
 
@@ -178,13 +183,13 @@ case class QueryMetrics(
       case Some(text) =>
         toComments(text)
       case None
-          if typeMetrics.isEmpty || typeInfo.previousParentType.isDefined && typeInfo.previousParentType.get
+          if typeMetrics.isEmpty || previousParentType.isDefined && previousParentType.get
             .isInstanceOf[ObjectType[_, _]] =>
         Vector.empty[ast.Comment]
       case None if typeMetrics.size == 1 =>
         toComments(renderer.renderField(typeMetrics.head._1, typeMetrics.head._2, prefix))
       case None =>
-        typeMetrics.flatMap { case (typeName, metrics) =>
+        typeMetrics.iterator.flatMap { case (typeName, metrics) =>
           toComments(renderer.renderField(typeName, metrics, prefix))
         }.toVector
     }
@@ -212,7 +217,9 @@ case class QueryMetrics(
     def fragmentCollector(sourceName: String, typeInfo: TypeInfo) = AstVisitor {
       case sp: FragmentSpread =>
         val dstSet = fragmentPaths.getOrElseUpdate(sp.name, mutable.Set[(String, Vector[String])]())
-        val path = typeInfo.ancestors.collect { case f: ast.Field => f.outputName }.reverse.toVector
+        val path = typeInfo.ancestors.reverseIterator.collect { case f: ast.Field =>
+          f.outputName
+        }.toVector
 
         dstSet += sourceName -> path
 
@@ -244,7 +251,7 @@ case class QueryMetrics(
             Vector(p -> p)
         }
 
-      fragName -> removeDuplicates(path.toVector.flatMap { case (n, cp) => loop(n, cp) })
+      fragName -> removeDuplicates(path.iterator.flatMap { case (n, cp) => loop(n, cp) }.toVector)
     }
   }
 
@@ -279,7 +286,7 @@ case class QueryMetrics(
     else added
 
   def toComments(s: String): Vector[ast.Comment] =
-    s.split("\n").map(c => ast.Comment(c.trim)).toVector
+    s.split("\n").iterator.map(c => ast.Comment(c.trim)).toVector
 
   def extension(
       enrichedQuery: ast.Document,
@@ -288,12 +295,13 @@ case class QueryMetrics(
       queryReducerNanos: Long
   )(implicit renderer: MetricRenderer): Extension[ast.Value] = {
     val sortedTypes =
-      fieldData.toVector
+      fieldData.iterator
         .map { case (typeName, fields) =>
           typeName -> fields.map { case (fieldName, metrics) =>
             metrics.snapshot.get98thPercentile()
           }.max
         }
+        .toVector
         .sortBy(_._2)(Ordering[Double].reverse)
 
     val typeMetrics =
