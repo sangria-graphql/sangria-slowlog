@@ -25,7 +25,7 @@ object MetricRenderer {
 class DefaultMetricRenderer(val unit: TimeUnit) extends MetricRenderer {
   def renderVariables[In: InputUnmarshaller](variables: In, names: Vector[String]) = {
     val iu = implicitly[InputUnmarshaller[In]]
-    val renderedVars = names.flatMap(name =>
+    val renderedVars = names.iterator.flatMap(name =>
       iu.getRootMapValue(variables, name).map(v => s"  $$$name = ${iu.render(v)}"))
 
     if (renderedVars.nonEmpty)
