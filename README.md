@@ -1,4 +1,4 @@
-**sangria-slowlog** - [Sangria](http://sangria-graphql.org/) middleware to log slow queries.
+**sangria-slowlog** - [Sangria](https://sangria-graphql.github.io/) middleware to log slow queries.
 
 ![Continuous Integration](https://github.com/sangria-graphql/sangria-slowlog/workflows/Continuous%20Integration/badge.svg)
 [![Coverage Status](http://coveralls.io/repos/sangria-graphql/sangria-slowlog/badge.svg?branch=master&service=github)](http://coveralls.io/github/sangria-graphql/sangria-slowlog?branch=master)
