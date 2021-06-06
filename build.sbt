@@ -4,8 +4,9 @@ organization := "org.sangria-graphql"
 mimaPreviousArtifacts := Set("org.sangria-graphql" %% "sangria-slowlog" % "2.0.0-M1")
 
 description := "Sangria middleware to log slow GraphQL queries"
-homepage := Some(url("http://sangria-graphql.org"))
-licenses := Seq("Apache License, ASL Version 2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0"))
+homepage := Some(url("https://sangria-graphql.github.io"))
+licenses := Seq(
+  "Apache License, ASL Version 2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0"))
 
 // sbt-github-actions needs configuration in `ThisBuild`
 ThisBuild / crossScalaVersions := Seq("2.12.14", "2.13.6")
@@ -15,7 +16,6 @@ ThisBuild / githubWorkflowBuildPreamble ++= List(
   WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
   WorkflowStep.Sbt(List("scalafmtCheckAll"), name = Some("Check formatting"))
 )
-
 
 scalacOptions += "-target:jvm-1.8"
 javacOptions ++= Seq("-source", "8", "-target", "8")
@@ -52,10 +52,15 @@ ThisBuild / githubWorkflowPublish := Seq(
 
 startYear := Some(2017)
 organizationHomepage := Some(url("https://github.com/sangria-graphql"))
-developers := Developer("OlegIlyenko", "Oleg Ilyenko", "", url("https://github.com/OlegIlyenko")) :: Nil
-scmInfo := Some(ScmInfo(
-  browseUrl = url("https://github.com/sangria-graphql/sangria-circe"),
-  connection = "scm:git:git@github.com:sangria-graphql/sangria-circe.git"))
+developers := Developer(
+  "OlegIlyenko",
+  "Oleg Ilyenko",
+  "",
+  url("https://github.com/OlegIlyenko")) :: Nil
+scmInfo := Some(
+  ScmInfo(
+    browseUrl = url("https://github.com/sangria-graphql/sangria-slowlog"),
+    connection = "scm:git:git@github.com:sangria-graphql/sangria-slowlog.git"))
 
 // nice *magenta* prompt!
 ThisBuild / shellPrompt := { state =>
