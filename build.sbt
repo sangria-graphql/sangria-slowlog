@@ -1,12 +1,12 @@
 name := "sangria-slowlog"
 organization := "org.sangria-graphql"
 
-mimaPreviousArtifacts := Set("org.sangria-graphql" %% "sangria-slowlog" % "2.0.0-M1")
+mimaPreviousArtifacts := Set("org.sangria-graphql" %% "sangria-slowlog" % "2.0.2")
 
 description := "Sangria middleware to log slow GraphQL queries"
-homepage := Some(url("https://sangria-graphql.github.io"))
+homepage := Some(url("https://sangria-graphql.github.io/"))
 licenses := Seq(
-  "Apache License, ASL Version 2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0"))
+  "Apache License, ASL Version 2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0"))
 
 // sbt-github-actions needs configuration in `ThisBuild`
 ThisBuild / crossScalaVersions := Seq("2.12.14", "2.13.6")
