@@ -2,8 +2,8 @@
 
 ![Continuous Integration](https://github.com/sangria-graphql/sangria-slowlog/workflows/Continuous%20Integration/badge.svg)
 [![Coverage Status](http://coveralls.io/repos/sangria-graphql/sangria-slowlog/badge.svg?branch=master&service=github)](http://coveralls.io/github/sangria-graphql/sangria-slowlog?branch=master)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.sangria-graphql/sangria-slowlog_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.sangria-graphql/sangria-slowlog_2.12)
-[![License](http://img.shields.io/:license-Apache%202-brightgreen.svg)](http://www.apache.org/licenses/LICENSE-2.0.txt)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.sangria-graphql/sangria-slowlog_2.13/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.sangria-graphql/sangria-slowlog_2.13)
+[![License](http://img.shields.io/:license-Apache%202-brightgreen.svg)](https://www.apache.org/licenses/LICENSE-2.0.txt)
 [![Join the chat at https://gitter.im/sangria-graphql/sangria](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/sangria-graphql/sangria?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 SBT Configuration:
@@ -158,7 +158,7 @@ You would need and implicit instance of a `Tracer` available in the scope.
 In order to access field's `span` in the resolve function, you can use middleware attachment `ScopeAttachment`:
 
 ```scala
-Fied(..., resolve = ctx => {
+Field(..., resolve = ctx => {
   val parentSpan: Option[Span] = ctx.attachment[SpanAttachment].map(_.span)
   
   // ...
@@ -169,4 +169,4 @@ The middleware creates spans using OpenTracings `startActive` API, so you can in
 
 ## License
 
-**sangria-slowlog** is licensed under [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
+**sangria-slowlog** is licensed under [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0).
