@@ -37,13 +37,12 @@ object TestSchema {
       Field(
         "name",
         OptionType(StringType),
-        resolve = c => {
+        resolve = c =>
           Future {
             Thread.sleep((math.random * 10).toLong)
             c.value.name
           }
-
-        }),
+      ),
       Field("meows", OptionType(BooleanType), resolve = _.value.meows)
     )
   )
