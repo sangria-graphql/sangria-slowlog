@@ -153,7 +153,7 @@ import sangria.slowlog.SlowLog
 Executor.execute(schema, query, middleware = SlowLog.openTracing() :: Nil)
 ```
 
-You would need and implicit instance of a `Tracer` available in the scope.
+You would need an implicit instance of a `Tracer` available in the scope.
 
 In order to access field's `span` in the resolve function, you can use middleware attachment `ScopeAttachment`:
 
