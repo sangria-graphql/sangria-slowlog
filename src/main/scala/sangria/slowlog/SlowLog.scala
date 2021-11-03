@@ -92,15 +92,21 @@ class SlowLog(
       fieldVal: FieldVal,
       ctx: Context[Any, _],
       success: Boolean): Unit = {
-    val path = even(ctx.path.cacheKey)
+    val path = even(ctx.path.cacheKeyReversedIterator)
 
     queryVal.update(path, ctx.parentType.name, ctx.field.name, success, fieldVal, System.nanoTime())
   }
 
-  def even[T](v: Vector[T]): Vector[T] = v.iterator.zipWithIndex
-    .filter(_._2 % 2 == 0)
-    .map(_._1)
-    .toVector
+  private def even[T](v: Iterator[T]): Vector[T] = {
+    val l = new scala.collection.mutable.ListBuffer[T]()
+    var even = false
+    while (v.hasNext) {
+      val e = v.next()
+      if (even) l.prepend(e)
+      even = !even
+    }
+    l.toVector
+  }
 }
 
 object SlowLog {
