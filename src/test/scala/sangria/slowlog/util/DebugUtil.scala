@@ -17,75 +17,72 @@ object DebugUtil {
   }
 
   private val myPrettifier: Prettifier =
-    new Prettifier {
-      def apply(o: Any): String = {
-        def indent(n: Int) = "  " * n
+    (o: Any) => {
+      def indent(n: Int) = "  " * n
 
-        def loop(
-            obj: Any,
-            level: Int,
-            indentLists: Boolean = false,
-            indentMap: Boolean = false): String =
-          obj match {
-            case null => "null"
-            case aString: String => "\"" + StringUtil.escapeString(aString) + "\""
-            case aStringWrapper: scala.collection.immutable.StringOps =>
-              "\"" + aStringWrapper + "\""
-            case aChar: Char => "\'" + aChar + "\'"
-            case ot: OperationType => "OperationType." + ot
-            case aGenMap: GenMap[_, _] =>
-              (if (indentMap) indent(level + 1) else "") + "Map(\n" +
-                aGenMap.toIterator
-                  .map { case (key, value) =>
-                    indent(level + 1) + loop(key, level) + " -> " + loop(
-                      value,
-                      level + 1,
-                      indentMap = false,
-                      indentLists = true)
-                  }
-                  .mkString(",\n") + ")"
-            case list: scala.collection.immutable.List[_] =>
-              if (list.isEmpty) "Nil"
-              else if (indentLists)
-                "List(\n" + list
-                  .map(x => indent(level + 1) + loop(x, level + 1))
-                  .mkString(",\n") + ")"
-              else
-                "List(" + list.map(x => loop(x, level)).mkString(", ") + ")"
-            case list: scala.collection.immutable.Vector[_] =>
-              if (list.isEmpty) "Vector.empty"
-              else if (indentLists)
-                "Vector(\n" + list
-                  .map(x => indent(level + 1) + loop(x, level + 1))
-                  .mkString(",\n") + ")"
-              else
-                "Vector(" + list.map(x => loop(x, level)).mkString(", ") + ")"
-            case prod: Product =>
-              val args = prod.productIterator.toList
+      def loop(
+          obj: Any,
+          level: Int,
+          indentLists: Boolean = false,
+          indentMap: Boolean = false): String =
+        obj match {
+          case null => "null"
+          case aString: String => "\"" + StringUtil.escapeString(aString) + "\""
+          case aStringWrapper: scala.collection.immutable.StringOps =>
+            "\"" + aStringWrapper + "\""
+          case aChar: Char => "\'" + aChar + "\'"
+          case ot: OperationType => "OperationType." + ot
+          case aGenMap: GenMap[_, _] =>
+            (if (indentMap) indent(level + 1) else "") + "Map(\n" +
+              aGenMap.toIterator
+                .map { case (key, value) =>
+                  indent(level + 1) + loop(key, level) + " -> " + loop(
+                    value,
+                    level + 1,
+                    indentLists = true)
+                }
+                .mkString(",\n") + ")"
+          case list: scala.collection.immutable.List[_] =>
+            if (list.isEmpty) "Nil"
+            else if (indentLists)
+              "List(\n" + list
+                .map(x => indent(level + 1) + loop(x, level + 1))
+                .mkString(",\n") + ")"
+            else
+              "List(" + list.map(x => loop(x, level)).mkString(", ") + ")"
+          case list: scala.collection.immutable.Vector[_] =>
+            if (list.isEmpty) "Vector.empty"
+            else if (indentLists)
+              "Vector(\n" + list
+                .map(x => indent(level + 1) + loop(x, level + 1))
+                .mkString(",\n") + ")"
+            else
+              "Vector(" + list.map(x => loop(x, level)).mkString(", ") + ")"
+          case prod: Product =>
+            val args = prod.productIterator.toList
 
-              if (args.nonEmpty)
-                if (indentClasses.isDefinedAt(prod) && indentClasses(prod))
-                  prod.productPrefix + "(\n" + args
-                    .map(x => indent(level + 1) + loop(x, level + 1, true))
-                    .mkString(",\n") + "\n" + indent(level) + ")"
-                else
-                  prod.productPrefix + "(" + args
-                    .map(x => loop(x, level, false))
-                    .mkString(", ") + ")"
+            if (args.nonEmpty)
+              if (indentClasses.isDefinedAt(prod) && indentClasses(prod))
+                prod.productPrefix + "(\n" + args
+                  .map(x => indent(level + 1) + loop(x, level + 1, indentLists = true))
+                  .mkString(",\n") + "\n" + indent(level) + ")"
               else
-                prod.productPrefix
-            case anythingElse =>
-              anythingElse.toString
-          }
+                prod.productPrefix + "(" + args
+                  .map(x => loop(x, level))
+                  .mkString(", ") + ")"
+            else
+              prod.productPrefix
+          case anythingElse =>
+            anythingElse.toString
+        }
 
-        loop(o, 0, false)
-      }
+      loop(o, 0)
     }
 
-  private implicit val conf = myPrettifier
+  private implicit val conf: Prettifier = myPrettifier
 
-  def prettyRender(obj: Any) = obj.pretty
+  def prettyRender(obj: Any): String = obj.pretty
 
-  def prettyPrint(obj: Any) = println(prettyRender(obj))
+  def prettyPrint(obj: Any): Unit = println(prettyRender(obj))
 
 }

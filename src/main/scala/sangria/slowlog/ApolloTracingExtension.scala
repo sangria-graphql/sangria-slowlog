@@ -20,15 +20,15 @@ object ApolloTracingExtension
   type QueryVal = QueryTrace
   type FieldVal = Long
 
-  def beforeQuery(context: MiddlewareQueryContext[Any, _, _]) =
+  def beforeQuery(context: MiddlewareQueryContext[Any, _, _]): QueryTrace =
     QueryTrace(Instant.now(), System.nanoTime(), new ConcurrentLinkedQueue)
 
-  def afterQuery(queryVal: QueryVal, context: MiddlewareQueryContext[Any, _, _]) = ()
+  def afterQuery(queryVal: QueryVal, context: MiddlewareQueryContext[Any, _, _]): Unit = ()
 
   def beforeField(
       queryVal: QueryVal,
       mctx: MiddlewareQueryContext[Any, _, _],
-      ctx: Context[Any, _]) =
+      ctx: Context[Any, _]): BeforeFieldResult[Any, FieldVal] =
     continue(System.nanoTime())
 
   def afterField(
@@ -36,7 +36,7 @@ object ApolloTracingExtension
       fieldVal: FieldVal,
       value: Any,
       mctx: MiddlewareQueryContext[Any, _, _],
-      ctx: Context[Any, _]) = {
+      ctx: Context[Any, _]): None.type = {
     updateMetric(queryVal, fieldVal, ctx)
     None
   }
@@ -46,7 +46,7 @@ object ApolloTracingExtension
       fieldVal: FieldVal,
       error: Throwable,
       mctx: MiddlewareQueryContext[Any, _, _],
-      ctx: Context[Any, _]) =
+      ctx: Context[Any, _]): Unit =
     updateMetric(queryVal, fieldVal, ctx)
 
   def updateMetric(queryVal: QueryVal, fieldVal: FieldVal, ctx: Context[Any, _]): Unit =

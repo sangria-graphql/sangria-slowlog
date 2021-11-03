@@ -11,6 +11,7 @@ import io.opentracing.mock.{MockSpan, MockTracer}
 import io.opentracing.mock.MockTracer.Propagator
 import io.opentracing.util.ThreadLocalScopeManager
 import io.opentracing.contrib.concurrent.TracedExecutionContext
+import org.json4s
 
 import scala.concurrent.ExecutionContext.global
 import scala.language.postfixOps
@@ -33,8 +34,9 @@ class OpenTracingSpec
     with BeforeAndAfter {
   import TestSchema._
 
-  implicit val mockTracer = new MockTracer(new ThreadLocalScopeManager, Propagator.TEXT_MAP)
-  implicit val ec = new TracedExecutionContext(global, mockTracer, false)
+  implicit val mockTracer: MockTracer =
+    new MockTracer(new ThreadLocalScopeManager, Propagator.TEXT_MAP)
+  implicit val ec: TracedExecutionContext = new TracedExecutionContext(global, mockTracer, false)
 
   before {
     mockTracer.reset()
@@ -131,7 +133,7 @@ class OpenTracingSpec
     }
   }
 
-  def removeTime(res: JValue) =
+  def removeTime(res: JValue): json4s.JValue =
     res.transformField {
       case (name @ "startOffset", _) => name -> JInt(0)
       case (name @ "duration", _) => name -> JInt(0)
