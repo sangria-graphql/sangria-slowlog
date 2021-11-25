@@ -39,7 +39,7 @@ object TestSchema {
         OptionType(StringType),
         resolve = c =>
           Future {
-            Thread.sleep((math.random * 10).toLong)
+            Thread.sleep((math.random() * 10).toLong)
             c.value.name
           }
       ),

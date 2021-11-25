@@ -7,7 +7,9 @@ import org.slf4j.Logger
 import sangria.ast.Document
 import sangria.execution._
 import sangria.marshalling.InputUnmarshaller
+import sangria.renderer.QueryRenderer
 import sangria.schema.Context
+import sangria.validation.DocumentAnalyzer
 
 import scala.collection.concurrent.TrieMap
 import scala.concurrent.duration._
@@ -114,8 +116,11 @@ object SlowLog {
       query: Document,
       operationName: Option[String],
       separateOp: Boolean): String =
-    if (separateOp) query.separateOperation(operationName).fold("")(_.renderPretty)
-    else query.renderPretty
+    if (separateOp)
+      DocumentAnalyzer(query)
+        .separateOperation(operationName)
+        .fold("")(d => QueryRenderer.renderPretty(d))
+    else QueryRenderer.renderPretty(query)
 
   private def renderLog(
       query: Document,
