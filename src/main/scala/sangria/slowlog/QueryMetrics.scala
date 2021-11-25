@@ -11,6 +11,7 @@ import sangria.visitor.VisitorCommand
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
 import sangria.marshalling.queryAst._
+import sangria.renderer.QueryRenderer
 import sangria.validation.TypeInfo
 
 import scala.collection.immutable.VectorBuilder
@@ -325,7 +326,7 @@ case class QueryMetrics(
               renderer.durationField("execution", durationNanos),
               renderer.durationField("validation", validationNanos),
               renderer.durationField("reducers", queryReducerNanos),
-              ast.ObjectField("query", ast.StringValue(enrichedQuery.renderPretty)),
+              ast.ObjectField("query", ast.StringValue(QueryRenderer.renderPretty(enrichedQuery))),
               ast.ObjectField("types", ast.ObjectValue(typeMetrics))
             ))
           )))
