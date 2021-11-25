@@ -1,8 +1,8 @@
 package sangria.slowlog
 
 import java.util.concurrent.TimeUnit
-
 import org.json4s.JsonAST.{JInt, JString, JValue}
+import org.json4s.MonadicJValue.jvalueToMonadic
 
 import language.postfixOps
 import sangria.slowlog.util.FutureResultSupport

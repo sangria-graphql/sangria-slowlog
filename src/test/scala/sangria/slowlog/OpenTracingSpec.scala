@@ -11,6 +11,7 @@ import io.opentracing.mock.{MockSpan, MockTracer}
 import io.opentracing.mock.MockTracer.Propagator
 import io.opentracing.util.ThreadLocalScopeManager
 import io.opentracing.contrib.concurrent.TracedExecutionContext
+import org.json4s.MonadicJValue.jvalueToMonadic
 
 import scala.concurrent.ExecutionContext.global
 import scala.language.postfixOps
