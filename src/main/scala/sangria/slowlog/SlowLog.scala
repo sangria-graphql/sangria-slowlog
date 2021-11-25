@@ -7,7 +7,9 @@ import org.slf4j.Logger
 import sangria.ast.Document
 import sangria.execution._
 import sangria.marshalling.InputUnmarshaller
+import sangria.renderer.QueryRenderer
 import sangria.schema.Context
+import sangria.validation.DocumentAnalyzer
 
 import scala.collection.concurrent.TrieMap
 import scala.concurrent.duration._
@@ -25,15 +27,16 @@ class SlowLog(
 
   private val thresholdNanos = threshold.toNanos
 
-  def beforeQuery(context: MiddlewareQueryContext[Any, _, _]) =
+  def beforeQuery(context: MiddlewareQueryContext[Any, _, _]): QueryMetrics =
     QueryMetrics(TrieMap.empty, TrieMap.empty, System.nanoTime(), addExtensions)
 
-  def afterQuery(queryVal: QueryVal, context: MiddlewareQueryContext[Any, _, _]) = ()
+  def afterQuery(queryVal: QueryVal, context: MiddlewareQueryContext[Any, _, _]): Unit = ()
 
   def afterQueryExtensions(
       queryVal: QueryMetrics,
       context: MiddlewareQueryContext[Any, _, _]): Vector[Extension[_]] = {
-    implicit val iu = context.inputUnmarshaller.asInstanceOf[InputUnmarshaller[Any]]
+    implicit val iu: InputUnmarshaller[Any] =
+      context.inputUnmarshaller.asInstanceOf[InputUnmarshaller[Any]]
     val vars = context.variables.asInstanceOf[Any]
     val durationNanos = System.nanoTime() - queryVal.startNanos
 
@@ -64,7 +67,7 @@ class SlowLog(
   def beforeField(
       queryVal: QueryVal,
       mctx: MiddlewareQueryContext[Any, _, _],
-      ctx: Context[Any, _]) =
+      ctx: Context[Any, _]): BeforeFieldResult[Any, Long] =
     continue(System.nanoTime())
 
   def afterField(
@@ -72,7 +75,7 @@ class SlowLog(
       fieldVal: FieldVal,
       value: Any,
       mctx: MiddlewareQueryContext[Any, _, _],
-      ctx: Context[Any, _]) = {
+      ctx: Context[Any, _]): None.type = {
     updateMetric(queryVal, fieldVal, ctx, success = true)
 
     None
@@ -83,7 +86,7 @@ class SlowLog(
       fieldVal: FieldVal,
       error: Throwable,
       mctx: MiddlewareQueryContext[Any, _, _],
-      ctx: Context[Any, _]) =
+      ctx: Context[Any, _]): Unit =
     updateMetric(queryVal, fieldVal, ctx, success = false)
 
   def updateMetric(
@@ -91,15 +94,21 @@ class SlowLog(
       fieldVal: FieldVal,
       ctx: Context[Any, _],
       success: Boolean): Unit = {
-    val path = even(ctx.path.cacheKey)
+    val path = even(ctx.path.cacheKeyReversedIterator)
 
     queryVal.update(path, ctx.parentType.name, ctx.field.name, success, fieldVal, System.nanoTime())
   }
 
-  def even[T](v: Vector[T]): Vector[T] = v.iterator.zipWithIndex
-    .filter(_._2 % 2 == 0)
-    .map(_._1)
-    .toVector
+  private def even[T](v: Iterator[T]): Vector[T] = {
+    val l = new scala.collection.mutable.ListBuffer[T]()
+    var even = false
+    while (v.hasNext) {
+      val e = v.next()
+      if (even) l.prepend(e)
+      even = !even
+    }
+    l.toVector
+  }
 }
 
 object SlowLog {
@@ -107,8 +116,11 @@ object SlowLog {
       query: Document,
       operationName: Option[String],
       separateOp: Boolean): String =
-    if (separateOp) query.separateOperation(operationName).fold("")(_.renderPretty)
-    else query.renderPretty
+    if (separateOp)
+      DocumentAnalyzer(query)
+        .separateOperation(operationName)
+        .fold("")(d => QueryRenderer.renderPretty(d))
+    else QueryRenderer.renderPretty(query)
 
   private def renderLog(
       query: Document,

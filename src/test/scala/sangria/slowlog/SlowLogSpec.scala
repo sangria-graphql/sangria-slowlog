@@ -228,7 +228,7 @@ class SlowLogSpec
       val vars = ScalaInput.scalaInput(Map("limit" -> 10))
       var enrichedQuery: Option[String] = None
 
-      implicit val renderer = MetricRenderer.in(TimeUnit.SECONDS)
+      implicit val renderer: DefaultMetricRenderer = MetricRenderer.in(TimeUnit.SECONDS)
 
       Executor
         .execute(

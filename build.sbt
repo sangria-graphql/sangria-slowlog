@@ -1,3 +1,5 @@
+import com.typesafe.tools.mima.core.{DirectMissingMethodProblem, ProblemFilters}
+
 name := "sangria-slowlog"
 organization := "org.sangria-graphql"
 
@@ -9,12 +11,16 @@ licenses := Seq(
   "Apache License, ASL Version 2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0"))
 
 // sbt-github-actions needs configuration in `ThisBuild`
-ThisBuild / crossScalaVersions := Seq("2.12.15", "2.13.6")
+ThisBuild / crossScalaVersions := Seq("2.12.15", "2.13.7")
 ThisBuild / scalaVersion := crossScalaVersions.value.last
 ThisBuild / githubWorkflowPublishTargetBranches := List()
 ThisBuild / githubWorkflowBuildPreamble ++= List(
   WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
   WorkflowStep.Sbt(List("scalafmtCheckAll"), name = Some("Check formatting"))
+)
+// Binary Incompatible Changes, we'll document.
+ThisBuild / mimaBinaryIssueFilters ++= Seq(
+  ProblemFilters.exclude[DirectMissingMethodProblem]("sangria.slowlog.SlowLog.even")
 )
 
 scalacOptions += "-target:jvm-1.8"
@@ -23,8 +29,8 @@ javacOptions ++= Seq("-source", "8", "-target", "8")
 scalacOptions ++= Seq("-deprecation", "-feature")
 
 libraryDependencies ++= Seq(
-  "org.sangria-graphql" %% "sangria" % "2.1.3",
-  "io.dropwizard.metrics" % "metrics-core" % "4.2.3",
+  "org.sangria-graphql" %% "sangria" % "2.1.6",
+  "io.dropwizard.metrics" % "metrics-core" % "4.2.4",
   "org.slf4j" % "slf4j-api" % "1.7.32",
   "io.opentracing.contrib" %% "opentracing-scala-concurrent" % "0.0.6",
   "io.opentracing" % "opentracing-mock" % "0.33.0" % Test,

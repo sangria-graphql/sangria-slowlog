@@ -2,7 +2,7 @@ package sangria.slowlog
 
 import com.codahale.metrics.{Counter, ExponentiallyDecayingReservoir, Histogram}
 import sangria.ast
-import sangria.ast.{AstVisitor, FragmentSpread}
+import sangria.ast.{AstVisitor, Comment, FragmentSpread}
 import sangria.execution.Extension
 import sangria.marshalling.InputUnmarshaller
 import sangria.schema.{ObjectType, Schema}
@@ -11,6 +11,7 @@ import sangria.visitor.VisitorCommand
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
 import sangria.marshalling.queryAst._
+import sangria.renderer.QueryRenderer
 import sangria.validation.TypeInfo
 
 import scala.collection.immutable.VectorBuilder
@@ -27,7 +28,7 @@ case class QueryMetrics(
       fieldName: String,
       success: Boolean,
       startNanos: Long,
-      endNanos: Long) = {
+      endNanos: Long): Unit = {
     val duration = endNanos - startNanos
     val forPath = pathData.getOrElseUpdate(path, TrieMap.empty)
     val m = forPath.getOrElseUpdate(
@@ -269,7 +270,7 @@ case class QueryMetrics(
     builder.result()
   }
 
-  def findVariableNames(node: ast.AstNode) = {
+  def findVariableNames(node: ast.AstNode): Vector[String] = {
     val names = new mutable.HashSet[String]
 
     AstVisitor.visit(
@@ -281,7 +282,7 @@ case class QueryMetrics(
     names.toVector
   }
 
-  def addComments(existing: Vector[ast.Comment], added: Vector[ast.Comment]) =
+  def addComments(existing: Vector[ast.Comment], added: Vector[ast.Comment]): Vector[Comment] =
     if (existing.nonEmpty) (existing :+ ast.Comment("")) ++ added
     else added
 
@@ -325,7 +326,7 @@ case class QueryMetrics(
               renderer.durationField("execution", durationNanos),
               renderer.durationField("validation", validationNanos),
               renderer.durationField("reducers", queryReducerNanos),
-              ast.ObjectField("query", ast.StringValue(enrichedQuery.renderPretty)),
+              ast.ObjectField("query", ast.StringValue(QueryRenderer.renderPretty(enrichedQuery))),
               ast.ObjectField("types", ast.ObjectValue(typeMetrics))
             ))
           )))
