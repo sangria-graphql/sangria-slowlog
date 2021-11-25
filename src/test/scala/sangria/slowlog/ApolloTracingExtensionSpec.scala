@@ -2,6 +2,7 @@ package sangria.slowlog
 
 import org.json4s
 import org.json4s.JsonAST._
+import org.json4s.MonadicJValue.jvalueToMonadic
 
 import language.postfixOps
 import org.scalatest.OptionValues
