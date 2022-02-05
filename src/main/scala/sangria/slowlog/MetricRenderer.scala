@@ -48,7 +48,7 @@ class DefaultMetricRenderer(val unit: TimeUnit) extends MetricRenderer {
 
   def renderExecution(durationNanos: Long, validationNanos: Long, queryReducerNanos: Long) =
     s"[Execution Metrics] duration: ${renderDuration(durationNanos)}, validation: ${renderDuration(
-      validationNanos)}, reducers: ${renderDuration(queryReducerNanos)}"
+        validationNanos)}, reducers: ${renderDuration(queryReducerNanos)}"
 
   def renderHistogram(count: Long, snap: Snapshot, unit: TimeUnit): Vector[(String, String)] =
     if (count == 1)
