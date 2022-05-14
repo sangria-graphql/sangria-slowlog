@@ -100,7 +100,7 @@ class SlowLog(
   }
 
   private def even[T](v: Iterator[T]): Vector[T] = {
-    val l = new scala.collection.mutable.ListBuffer[T]()
+    val l = new scala.collection.mutable.ListBuffer[T]
     var even = false
     while (v.hasNext) {
       val e = v.next()
