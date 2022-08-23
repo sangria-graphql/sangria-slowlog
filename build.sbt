@@ -31,12 +31,12 @@ scalacOptions ++= Seq("-deprecation", "-feature")
 libraryDependencies ++= Seq(
   "org.sangria-graphql" %% "sangria" % "3.2.0",
   "io.dropwizard.metrics" % "metrics-core" % "4.2.11",
-  "org.slf4j" % "slf4j-api" % "1.7.36",
+  "org.slf4j" % "slf4j-api" % "2.0.0",
   "io.opentracing.contrib" %% "opentracing-scala-concurrent" % "0.0.6",
   "io.opentracing" % "opentracing-mock" % "0.33.0" % Test,
   "org.scalatest" %% "scalatest" % "3.2.13" % Test,
   "org.sangria-graphql" %% "sangria-json4s-native" % "1.0.2" % Test,
-  "org.slf4j" % "slf4j-simple" % "1.7.36" % Test
+  "org.slf4j" % "slf4j-simple" % "2.0.0" % Test
 )
 
 // Publishing
