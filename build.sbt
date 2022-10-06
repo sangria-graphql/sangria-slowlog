@@ -3,16 +3,18 @@ import com.typesafe.tools.mima.core.{DirectMissingMethodProblem, ProblemFilters}
 name := "sangria-slowlog"
 organization := "org.sangria-graphql"
 
-mimaPreviousArtifacts := Set("org.sangria-graphql" %% "sangria-slowlog" % "2.0.2")
+val isScala3 = Def.setting(
+  CrossVersion.partialVersion(scalaVersion.value).exists(_._1 == 3)
+)
+
+mimaPreviousArtifacts := {
+  if (isScala3.value) Set.empty else Set("org.sangria-graphql" %% "sangria-slowlog" % "2.0.2")
+}
 
 description := "Sangria middleware to log slow GraphQL queries"
 homepage := Some(url("https://sangria-graphql.github.io/"))
 licenses := Seq(
   "Apache License, ASL Version 2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0"))
-
-val isScala3 = Def.setting(
-  CrossVersion.partialVersion(scalaVersion.value).exists(_._1 == 3)
-)
 
 // sbt-github-actions needs configuration in `ThisBuild`
 ThisBuild / crossScalaVersions := Seq("2.12.17", "2.13.8", "3.2.0")
