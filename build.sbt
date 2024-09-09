@@ -17,7 +17,7 @@ licenses := Seq(
   "Apache License, ASL Version 2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0"))
 
 // sbt-github-actions needs configuration in `ThisBuild`
-ThisBuild / crossScalaVersions := Seq("2.12.18", "2.13.14", "3.3.1")
+ThisBuild / crossScalaVersions := Seq("2.12.20", "2.13.14", "3.3.1")
 ThisBuild / scalaVersion := crossScalaVersions.value.last
 ThisBuild / githubWorkflowPublishTargetBranches := List()
 ThisBuild / githubWorkflowBuildPreamble ++= List(
@@ -36,14 +36,14 @@ scalacOptions ++= Seq("-deprecation", "-feature")
 
 libraryDependencies ++= Seq(
   "org.sangria-graphql" %% "sangria" % "4.1.0",
-  "io.dropwizard.metrics" % "metrics-core" % "4.2.25",
-  "org.slf4j" % "slf4j-api" % "2.0.13",
+  "io.dropwizard.metrics" % "metrics-core" % "4.2.27",
+  "org.slf4j" % "slf4j-api" % "2.0.16",
   ("io.opentracing.contrib" %% "opentracing-scala-concurrent" % "0.0.6").cross(
     CrossVersion.for3Use2_13),
   "io.opentracing" % "opentracing-mock" % "0.33.0" % Test,
-  "org.scalatest" %% "scalatest" % "3.2.18" % Test,
+  "org.scalatest" %% "scalatest" % "3.2.19" % Test,
   "org.sangria-graphql" %% "sangria-json4s-native" % "1.0.2" % Test,
-  "org.slf4j" % "slf4j-simple" % "2.0.13" % Test
+  "org.slf4j" % "slf4j-simple" % "2.0.16" % Test
 )
 
 // Publishing

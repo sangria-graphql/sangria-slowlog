@@ -23,8 +23,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.12.18, 2.13.14, 3.3.1]
-        java: [temurin@8]
+        scala: [2.12.20, 2.13.14, 3.3.1]
+        java: [zulu@8]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (full)
@@ -32,13 +32,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Java (temurin@8)
-        if: matrix.java == 'temurin@8'
+      - name: Setup Java (zulu@8)
+        if: matrix.java == 'zulu@8'
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
+          distribution: zulu
           java-version: 8
           cache: sbt
+
+      - name: Setup sbt
+        uses: sbt/setup-sbt@v1
 
       - name: Check binary compatibility
         run: sbt '++ ${{ matrix.scala }}' mimaReportBinaryIssues
@@ -69,7 +72,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         scala: [3.3.1]
-        java: [temurin@8]
+        java: [zulu@8]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (full)
@@ -77,20 +80,23 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Java (temurin@8)
-        if: matrix.java == 'temurin@8'
+      - name: Setup Java (zulu@8)
+        if: matrix.java == 'zulu@8'
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
+          distribution: zulu
           java-version: 8
           cache: sbt
 
-      - name: Download target directories (2.12.18)
+      - name: Setup sbt
+        uses: sbt/setup-sbt@v1
+
+      - name: Download target directories (2.12.20)
         uses: actions/download-artifact@v4
         with:
-          name: target-${{ matrix.os }}-2.12.18-${{ matrix.java }}
+          name: target-${{ matrix.os }}-2.12.20-${{ matrix.java }}
 
-      - name: Inflate target directories (2.12.18)
+      - name: Inflate target directories (2.12.20)
         run: |
           tar xf targets.tar
           rm targets.tar
