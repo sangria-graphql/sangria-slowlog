@@ -79,7 +79,7 @@ case class QueryMetrics(
               if (varNames.nonEmpty) {
                 val rendered = renderer.renderVariables(variables, varNames)
 
-                if (rendered.trim.nonEmpty) toComments("\n" + rendered)
+                if (rendered.trim.nonEmpty) toComments(s"\n$rendered")
                 else Vector.empty
               } else Vector.empty
 
@@ -103,7 +103,7 @@ case class QueryMetrics(
               val paths =
                 originPaths.iterator.map {
                   case (_, hoPath) if hoPath.isEmpty => "* (query root)"
-                  case (_, hoPath) => "* " + hoPath.mkString(".")
+                  case (_, hoPath) => s"* ${hoPath.mkString(".")}"
                 }
 
               val usages =
@@ -143,10 +143,7 @@ case class QueryMetrics(
                     metricComments(
                       typeInfo,
                       typeMetrics,
-                      hoPath.mkString("", ".", if (hoPath.nonEmpty) "." else "") + path.mkString(
-                        "",
-                        ".",
-                        " "))
+                      s"${hoPath.mkString("", ".", if (hoPath.nonEmpty) "." else "")}${path.mkString("", ".", " ")}")
                   case None => Vector.empty
                 }
               }
@@ -203,7 +200,7 @@ case class QueryMetrics(
     if (varNames.nonEmpty) {
       val renderedVars = renderer.renderVariables(variables, varNames)
 
-      if (renderedVars.nonEmpty) toComments("\n" + renderedVars)
+      if (renderedVars.nonEmpty) toComments(s"\n$renderedVars")
       else Vector.empty
     } else Vector.empty
   }
@@ -270,7 +267,7 @@ case class QueryMetrics(
     builder.result()
   }
 
-  def findVariableNames(node: ast.AstNode): Vector[String] = {
+  private def findVariableNames(node: ast.AstNode): Vector[String] = {
     val names = new mutable.HashSet[String]
 
     AstVisitor.visit(
@@ -282,11 +279,13 @@ case class QueryMetrics(
     names.toVector
   }
 
-  def addComments(existing: Vector[ast.Comment], added: Vector[ast.Comment]): Vector[Comment] =
+  private def addComments(
+      existing: Vector[ast.Comment],
+      added: Vector[ast.Comment]): Vector[Comment] =
     if (existing.nonEmpty) (existing :+ ast.Comment("")) ++ added
     else added
 
-  def toComments(s: String): Vector[ast.Comment] =
+  private def toComments(s: String): Vector[ast.Comment] =
     s.split("\n").iterator.map(c => ast.Comment(c.trim)).toVector
 
   def extension(
@@ -298,7 +297,7 @@ case class QueryMetrics(
     val sortedTypes =
       fieldData.iterator
         .map { case (typeName, fields) =>
-          typeName -> fields.map { case (fieldName, metrics) =>
+          typeName -> fields.iterator.map { case (_, metrics) =>
             metrics.snapshot.get98thPercentile()
           }.max
         }

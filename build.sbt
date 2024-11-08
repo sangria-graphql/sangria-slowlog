@@ -26,7 +26,13 @@ ThisBuild / githubWorkflowBuildPreamble ++= List(
 )
 // Binary Incompatible Changes, we'll document.
 ThisBuild / mimaBinaryIssueFilters ++= Seq(
-  ProblemFilters.exclude[DirectMissingMethodProblem]("sangria.slowlog.SlowLog.even")
+  ProblemFilters.exclude[DirectMissingMethodProblem]("sangria.slowlog.SlowLog.even"),
+  ProblemFilters.exclude[DirectMissingMethodProblem]("sangria.slowlog.DefaultMetricRenderer.renderHistogram"),
+  ProblemFilters.exclude[DirectMissingMethodProblem]("sangria.slowlog.DefaultMetricRenderer.renderTimeUnit"),
+  ProblemFilters.exclude[DirectMissingMethodProblem]("sangria.slowlog.DefaultMetricRenderer.timeUnitSuffix"),
+  ProblemFilters.exclude[DirectMissingMethodProblem]("sangria.slowlog.QueryMetrics.findVariableNames"),
+  ProblemFilters.exclude[DirectMissingMethodProblem]("sangria.slowlog.QueryMetrics.addComments"),
+  ProblemFilters.exclude[DirectMissingMethodProblem]("sangria.slowlog.QueryMetrics.toComments")
 )
 
 scalacOptions += { if (isScala3.value) "-Xtarget:8" else "-target:jvm-1.8" }
