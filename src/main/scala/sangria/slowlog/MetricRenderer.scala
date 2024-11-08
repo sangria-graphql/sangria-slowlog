@@ -40,7 +40,7 @@ class DefaultMetricRenderer(val unit: TimeUnit) extends MetricRenderer {
     val histogram = metrics.snapshot
     val count = metrics.count
 
-    val countStr = s"[$prefix$typeName] count: $success${if (failure > 0) "/" + failure else ""}"
+    val countStr = s"[$prefix$typeName] count: $success${if (failure > 0) s"/$failure" else ""}"
 
     (countStr +: renderHistogram(count, histogram, unit).map { case (n, v) => s"$n: $v" })
       .mkString(", ")
@@ -49,7 +49,10 @@ class DefaultMetricRenderer(val unit: TimeUnit) extends MetricRenderer {
   def renderExecution(durationNanos: Long, validationNanos: Long, queryReducerNanos: Long) =
     s"[Execution Metrics] duration: ${renderDuration(durationNanos)}, validation: ${renderDuration(validationNanos)}, reducers: ${renderDuration(queryReducerNanos)}"
 
-  def renderHistogram(count: Long, snap: Snapshot, unit: TimeUnit): Vector[(String, String)] =
+  private def renderHistogram(
+      count: Long,
+      snap: Snapshot,
+      unit: TimeUnit): Vector[(String, String)] =
     if (count == 1)
       Vector("time" -> renderDuration(snap.getMax))
     else
@@ -97,10 +100,10 @@ class DefaultMetricRenderer(val unit: TimeUnit) extends MetricRenderer {
       if (unit == TimeUnit.NANOSECONDS) value
       else unit.convert(value, TimeUnit.NANOSECONDS)
 
-    ast.ObjectField(name + timeUnitSuffix, ast.BigIntValue(correctValue))
+    ast.ObjectField(s"$name$timeUnitSuffix", ast.BigIntValue(correctValue))
   }
 
-  def renderTimeUnit(unit: TimeUnit): String = unit match {
+  private def renderTimeUnit(unit: TimeUnit): String = unit match {
     case TimeUnit.DAYS => "d"
     case TimeUnit.HOURS => "h"
     case TimeUnit.MICROSECONDS => "μs"
@@ -110,7 +113,7 @@ class DefaultMetricRenderer(val unit: TimeUnit) extends MetricRenderer {
     case TimeUnit.SECONDS => "s"
   }
 
-  lazy val timeUnitSuffix: String = unit match {
+  private lazy val timeUnitSuffix: String = unit match {
     case TimeUnit.DAYS => "Day"
     case TimeUnit.HOURS => "Hour"
     case TimeUnit.MICROSECONDS => "Micros"

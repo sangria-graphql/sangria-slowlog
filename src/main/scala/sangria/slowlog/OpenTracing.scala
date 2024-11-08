@@ -56,16 +56,14 @@ class OpenTracing(parentSpan: Option[Span] = None, defaultOperationName: String 
     val spanBuilder =
       queryVal
         .get(parentPath)
-        .map { case (parentSpan, _) =>
+        .fold(
+          tracer
+            .buildSpan(ctx.field.name)
+            .withTag("type", "graphql-field")) { case (parentSpan, _) =>
           tracer
             .buildSpan(ctx.field.name)
             .withTag("type", "graphql-field")
             .asChildOf(parentSpan)
-        }
-        .getOrElse {
-          tracer
-            .buildSpan(ctx.field.name)
-            .withTag("type", "graphql-field")
         }
 
     val span = spanBuilder.start()

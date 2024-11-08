@@ -150,7 +150,7 @@ object SlowLog {
       addExtensions)
 
   def print(
-      threshold: FiniteDuration = 0 seconds,
+      threshold: FiniteDuration = 0.seconds,
       addExtensions: Boolean = false,
       separateOp: Boolean = true)(implicit renderer: MetricRenderer): SlowLog =
     new SlowLog(
