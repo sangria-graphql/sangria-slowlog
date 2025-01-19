@@ -319,16 +319,18 @@ case class QueryMetrics(
     val root =
       ast.ObjectValue(
         Vector(
-          ast.ObjectField(
-            "metrics",
-            ast.ObjectValue(Vector(
-              renderer.durationField("execution", durationNanos),
-              renderer.durationField("validation", validationNanos),
-              renderer.durationField("reducers", queryReducerNanos),
-              ast.ObjectField("query", ast.StringValue(QueryRenderer.renderPretty(enrichedQuery))),
-              ast.ObjectField("types", ast.ObjectValue(typeMetrics))
-            ))
-          )))
+          ast
+            .ObjectField(
+              "metrics",
+              ast.ObjectValue(Vector(
+                renderer.durationField("execution", durationNanos),
+                renderer.durationField("validation", validationNanos),
+                renderer.durationField("reducers", queryReducerNanos),
+                ast
+                  .ObjectField("query", ast.StringValue(QueryRenderer.renderPretty(enrichedQuery))),
+                ast.ObjectField("types", ast.ObjectValue(typeMetrics))
+              ))
+            )))
 
     Extension(root: ast.Value)
   }

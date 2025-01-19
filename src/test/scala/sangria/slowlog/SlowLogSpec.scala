@@ -83,7 +83,7 @@ class SlowLogSpec
           root = bob,
           operationName = Some("Test"),
           variables = vars,
-          middleware = SlowLog.log((_, query) => enrichedQuery = Some(query), 0 seconds) :: Nil)
+          middleware = SlowLog.log((_, query) => enrichedQuery = Some(query), 0.seconds) :: Nil)
         .await
 
       removeTime(enrichedQuery.value, "ms") should equal(
@@ -154,7 +154,7 @@ class SlowLogSpec
           operationName = Some("Test"),
           variables = vars,
           middleware = SlowLog
-            .log((_, query) => enrichedQuery = Some(query), 0 seconds, separateOp = false) :: Nil
+            .log((_, query) => enrichedQuery = Some(query), 0.seconds, separateOp = false) :: Nil
         )
         .await
 
@@ -242,7 +242,7 @@ class SlowLogSpec
           root = bob,
           variables = vars,
           middleware = SlowLog
-            .log((_, query) => enrichedQuery = Some(query), 0 seconds, separateOp = false) :: Nil
+            .log((_, query) => enrichedQuery = Some(query), 0.seconds, separateOp = false) :: Nil
         )
         .await
 
