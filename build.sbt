@@ -17,7 +17,7 @@ licenses := Seq(
   "Apache License, ASL Version 2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0"))
 
 // sbt-github-actions needs configuration in `ThisBuild`
-ThisBuild / crossScalaVersions := Seq("2.12.20", "2.13.15", "3.3.4")
+ThisBuild / crossScalaVersions := Seq("2.12.20", "2.13.15", "3.3.5")
 ThisBuild / scalaVersion := crossScalaVersions.value.last
 ThisBuild / githubWorkflowPublishTargetBranches := List()
 ThisBuild / githubWorkflowBuildPreamble ++= List(
@@ -27,10 +27,14 @@ ThisBuild / githubWorkflowBuildPreamble ++= List(
 // Binary Incompatible Changes, we'll document.
 ThisBuild / mimaBinaryIssueFilters ++= Seq(
   ProblemFilters.exclude[DirectMissingMethodProblem]("sangria.slowlog.SlowLog.even"),
-  ProblemFilters.exclude[DirectMissingMethodProblem]("sangria.slowlog.DefaultMetricRenderer.renderHistogram"),
-  ProblemFilters.exclude[DirectMissingMethodProblem]("sangria.slowlog.DefaultMetricRenderer.renderTimeUnit"),
-  ProblemFilters.exclude[DirectMissingMethodProblem]("sangria.slowlog.DefaultMetricRenderer.timeUnitSuffix"),
-  ProblemFilters.exclude[DirectMissingMethodProblem]("sangria.slowlog.QueryMetrics.findVariableNames"),
+  ProblemFilters.exclude[DirectMissingMethodProblem](
+    "sangria.slowlog.DefaultMetricRenderer.renderHistogram"),
+  ProblemFilters.exclude[DirectMissingMethodProblem](
+    "sangria.slowlog.DefaultMetricRenderer.renderTimeUnit"),
+  ProblemFilters.exclude[DirectMissingMethodProblem](
+    "sangria.slowlog.DefaultMetricRenderer.timeUnitSuffix"),
+  ProblemFilters.exclude[DirectMissingMethodProblem](
+    "sangria.slowlog.QueryMetrics.findVariableNames"),
   ProblemFilters.exclude[DirectMissingMethodProblem]("sangria.slowlog.QueryMetrics.addComments"),
   ProblemFilters.exclude[DirectMissingMethodProblem]("sangria.slowlog.QueryMetrics.toComments")
 )
