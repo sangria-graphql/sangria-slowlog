@@ -66,13 +66,15 @@ object ApolloTracingExtension
       context: MiddlewareQueryContext[Any, _, _]): Vector[Extension[_]] =
     Vector(
       Extension(
-        ObjectValue("tracing" -> ObjectValue(
-          "version" -> IntValue(1),
-          "startTime" -> StringValue(DateTimeFormatter.ISO_INSTANT.format(queryVal.startTime)),
-          "endTime" -> StringValue(DateTimeFormatter.ISO_INSTANT.format(Instant.now())),
-          "duration" -> BigIntValue(System.nanoTime() - queryVal.startNanos),
-          "execution" -> ObjectValue("resolvers" -> ListValue(queryVal.fieldData.asScala.toVector))
-        )): Value))
+        ObjectValue(
+          "tracing" -> ObjectValue(
+            "version" -> IntValue(1),
+            "startTime" -> StringValue(DateTimeFormatter.ISO_INSTANT.format(queryVal.startTime)),
+            "endTime" -> StringValue(DateTimeFormatter.ISO_INSTANT.format(Instant.now())),
+            "duration" -> BigIntValue(System.nanoTime() - queryVal.startNanos),
+            "execution" -> ObjectValue(
+              "resolvers" -> ListValue(queryVal.fieldData.asScala.toVector))
+          )): Value))
 
   case class QueryTrace(
       startTime: Instant,
