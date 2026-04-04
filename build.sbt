@@ -51,7 +51,7 @@ libraryDependencies ++= Seq(
   ("io.opentracing.contrib" %% "opentracing-scala-concurrent" % "0.0.6").cross(
     CrossVersion.for3Use2_13),
   "io.opentracing" % "opentracing-mock" % "0.33.0" % Test,
-  "org.scalatest" %% "scalatest" % "3.2.19" % Test,
+  "org.scalatest" %% "scalatest" % "3.2.20" % Test,
   "org.sangria-graphql" %% "sangria-json4s-native" % "1.0.2" % Test,
   "org.slf4j" % "slf4j-simple" % "2.0.17" % Test
 )
