@@ -40,28 +40,33 @@ class SlowLog(
     val vars = context.variables.asInstanceOf[Any]
     val durationNanos = System.nanoTime() - queryVal.startNanos
 
-    val updatedQuery = queryVal.enrichQuery(
-      context.executor.schema,
-      context.queryAst,
-      context.operationName,
-      vars,
-      durationNanos,
-      context.validationTiming.durationNanos,
-      context.queryReducerTiming.durationNanos
-    )
+    val shouldLog = logFn.isDefined && durationNanos > thresholdNanos
 
-    if (durationNanos > thresholdNanos)
-      logFn.foreach(fn => fn(updatedQuery, context.operationName, durationNanos))
+    // enriching the query is expensive, so only do it if somebody consumes the result
+    if (shouldLog || addExtensions) {
+      val updatedQuery = queryVal.enrichQuery(
+        context.executor.schema,
+        context.queryAst,
+        context.operationName,
+        vars,
+        durationNanos,
+        context.validationTiming.durationNanos,
+        context.queryReducerTiming.durationNanos
+      )
 
-    if (addExtensions)
-      Vector(
-        queryVal.extension(
-          updatedQuery,
-          durationNanos,
-          context.validationTiming.durationNanos,
-          context.queryReducerTiming.durationNanos))
-    else
-      Vector.empty
+      if (shouldLog)
+        logFn.foreach(fn => fn(updatedQuery, context.operationName, durationNanos))
+
+      if (addExtensions)
+        Vector(
+          queryVal.extension(
+            updatedQuery,
+            durationNanos,
+            context.validationTiming.durationNanos,
+            context.queryReducerTiming.durationNanos))
+      else
+        Vector.empty
+    } else Vector.empty
   }
 
   def beforeField(

@@ -11,6 +11,7 @@ import sangria.marshalling.queryAst._
 import sangria.renderer.SchemaRenderer
 
 import scala.collection.JavaConverters._
+import scala.collection.concurrent.TrieMap
 
 object ApolloTracingExtension
     extends Middleware[Any]
@@ -56,7 +57,10 @@ object ApolloTracingExtension
           ctx.path.path.map(queryAstResultMarshaller.scalarNode(_, "Any", Set.empty))),
         "parentType" -> StringValue(ctx.parentType.name),
         "fieldName" -> StringValue(ctx.field.name),
-        "returnType" -> StringValue(SchemaRenderer.renderTypeName(ctx.field.fieldType)),
+        "returnType" -> StringValue(
+          queryVal.typeNames.getOrElseUpdate(
+            (ctx.parentType.name, ctx.field.name),
+            SchemaRenderer.renderTypeName(ctx.field.fieldType))),
         "startOffset" -> BigIntValue(fieldVal - queryVal.startNanos),
         "duration" -> BigIntValue(System.nanoTime() - fieldVal)
       ))
@@ -79,5 +83,8 @@ object ApolloTracingExtension
   case class QueryTrace(
       startTime: Instant,
       startNanos: Long,
-      fieldData: ConcurrentLinkedQueue[Value])
+      fieldData: ConcurrentLinkedQueue[Value]) {
+    // kept out of the constructor to stay binary compatible
+    private[slowlog] val typeNames = TrieMap.empty[(String, String), String]
+  }
 }
