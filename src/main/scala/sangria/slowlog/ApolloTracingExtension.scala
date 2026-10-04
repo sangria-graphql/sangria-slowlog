@@ -22,7 +22,7 @@ object ApolloTracingExtension
   type FieldVal = Long
 
   def beforeQuery(context: MiddlewareQueryContext[Any, _, _]): QueryTrace =
-    QueryTrace(Instant.now(), System.nanoTime(), new ConcurrentLinkedQueue, TrieMap.empty)
+    QueryTrace(Instant.now(), System.nanoTime(), new ConcurrentLinkedQueue)
 
   def afterQuery(queryVal: QueryVal, context: MiddlewareQueryContext[Any, _, _]): Unit = ()
 
@@ -83,6 +83,8 @@ object ApolloTracingExtension
   case class QueryTrace(
       startTime: Instant,
       startNanos: Long,
-      fieldData: ConcurrentLinkedQueue[Value],
-      typeNames: TrieMap[(String, String), String])
+      fieldData: ConcurrentLinkedQueue[Value]) {
+    // kept out of the constructor to stay binary compatible
+    private[slowlog] val typeNames = TrieMap.empty[(String, String), String]
+  }
 }
