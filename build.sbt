@@ -20,6 +20,7 @@ licenses := Seq(
 ThisBuild / crossScalaVersions := Seq("2.12.20", "2.13.15", "3.3.4")
 ThisBuild / scalaVersion := crossScalaVersions.value.last
 ThisBuild / githubWorkflowPublishTargetBranches := List()
+ThisBuild / githubWorkflowJavaVersions := Seq(JavaSpec.zulu("17")) // sbt 2 requires JDK 17+
 ThisBuild / githubWorkflowBuildPreamble ++= List(
   WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
   WorkflowStep.Sbt(List("scalafmtCheckAll"), name = Some("Check formatting"))
