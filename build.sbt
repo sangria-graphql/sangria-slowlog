@@ -46,7 +46,7 @@ javacOptions ++= Seq("-source", "8", "-target", "8")
 scalacOptions ++= Seq("-deprecation", "-feature")
 
 libraryDependencies ++= Seq(
-  "org.sangria-graphql" %% "sangria" % "4.2.5",
+  "org.sangria-graphql" %% "sangria" % "4.2.19",
   "io.dropwizard.metrics" % "metrics-core" % "4.2.40",
   "org.slf4j" % "slf4j-api" % "2.0.20",
   ("io.opentracing.contrib" %% "opentracing-scala-concurrent" % "0.0.6").cross(
